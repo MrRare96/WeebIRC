@@ -1,9 +1,0 @@
-c:\users\eldin\documents\visual studio 2015\Projects\BatchIRC\BatchIRC\obj\Debug\BatchIRC.csprojResolveAssemblyReference.cache
-c:\users\eldin\documents\visual studio 2015\Projects\BatchIRC\BatchIRC\obj\Debug\BatchIRC.csproj.GenerateResource.Cache
-C:\Users\Eldin\documents\visual studio 2015\Projects\BatchIRC\BatchIRC\bin\Debug\WeebIRC.exe.config
-C:\Users\Eldin\documents\visual studio 2015\Projects\BatchIRC\BatchIRC\bin\Debug\WeebIRC.exe
-C:\Users\Eldin\documents\visual studio 2015\Projects\BatchIRC\BatchIRC\bin\Debug\WeebIRC.pdb
-C:\Users\Eldin\documents\visual studio 2015\Projects\BatchIRC\BatchIRC\obj\Debug\WeebIRC.Form1.resources
-C:\Users\Eldin\documents\visual studio 2015\Projects\BatchIRC\BatchIRC\obj\Debug\WeebIRC.Properties.Resources.resources
-C:\Users\Eldin\documents\visual studio 2015\Projects\BatchIRC\BatchIRC\obj\Debug\WeebIRC.exe
-C:\Users\Eldin\documents\visual studio 2015\Projects\BatchIRC\BatchIRC\obj\Debug\WeebIRC.pdb

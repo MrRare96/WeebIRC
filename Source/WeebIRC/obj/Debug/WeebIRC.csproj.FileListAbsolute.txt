@@ -1,9 +1,0 @@
-C:\Users\Eldin\Documents\GitHub\WeebIRC\Source\WeebIRC\bin\Debug\WeebIRC.exe.config
-C:\Users\Eldin\Documents\GitHub\WeebIRC\Source\WeebIRC\obj\Debug\WeebIRC.exe
-C:\Users\Eldin\Documents\GitHub\WeebIRC\Source\WeebIRC\obj\Debug\WeebIRC.pdb
-C:\Users\Eldin\Documents\GitHub\WeebIRC\Source\WeebIRC\bin\Debug\WeebIRC.exe
-C:\Users\Eldin\Documents\GitHub\WeebIRC\Source\WeebIRC\bin\Debug\WeebIRC.pdb
-C:\Users\Eldin\Documents\GitHub\WeebIRC\Source\WeebIRC\obj\Debug\WeebIRC.csprojResolveAssemblyReference.cache
-C:\Users\Eldin\Documents\GitHub\WeebIRC\Source\WeebIRC\obj\Debug\WeebIRC.Form1.resources
-C:\Users\Eldin\Documents\GitHub\WeebIRC\Source\WeebIRC\obj\Debug\WeebIRC.Properties.Resources.resources
-C:\Users\Eldin\Documents\GitHub\WeebIRC\Source\WeebIRC\obj\Debug\WeebIRC.csproj.GenerateResource.Cache
