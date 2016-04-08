@@ -31,7 +31,7 @@ WeebIRC is a multiplatform anime watcher, using your browser for the interface, 
 ### Screenshots and Showcases
 
 #### [Showcase 1 - older version](https://www.youtube.com/watch?v=BFUbyjH4Ufg) 
-#### [Screenshots](SCREENSHOTS.md)
+#### [Screenshots](https://github.com/RareAMV/WeebIRC/blob/master/SCREENSHOTS.md)
 
 
 ### Version
