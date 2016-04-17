@@ -125,3 +125,36 @@
   z-index: 1;
   will-change: width, height;
 }
+
+.outer-container {
+    width: 100%;
+    text-align: center;
+}
+.inner-container {
+    display: inline-block;
+    position: relative;
+}
+.video-overlay {
+    z-index: 2147483647;
+    position: absolute;
+    width: 100%;
+    left: 0px;
+    top: 80%;
+    padding: 5px 5px;
+    color: white;
+    text-shadow:
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000;
+    font-size: 2vw;
+    font-family: Helvetica;
+    color: #FFF;
+}
+.video-with-overlay {
+
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+}

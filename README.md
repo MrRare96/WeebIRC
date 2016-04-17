@@ -18,7 +18,7 @@ WeebIRC is a multiplatform anime watcher, using your browser for the interface, 
   - Many more to come!
  
 
-*= You can play your download directly (while downloading) inside your browser, but be aware that most subgroups have soft subs, which are NOT supported by any browser as far as I know!
+!
 
 **= Click and Play on Kodi is currently only available if you run your server on [OSMC](http://osmc.tv), this option will be invisible when the server runs on anything else but OSMC. 
 
@@ -35,7 +35,24 @@ WeebIRC is a multiplatform anime watcher, using your browser for the interface, 
 
 
 ### Version
+- 2.1 - Initial Release
+  - **NEW FEATURES**:
+  - History of watched anime
+  - Currently Watching (goes to lastest clicked anime)
+  - Html5 Video Player with subtitle (.ass) support*
+  - Logging system (server side)
+  - **UPDATES**
+  - Refreshed User Interface (menu icons, hiding search bar, etc)
+  - Html5 Video stream seekable video stream**
+  - **TECHNICAL UPDATES**
+  - Server reworked: mal parsing serverside, filestream server added (html5 seekable)
+
+
 - 2.0.0 - Initial Release
+
+*= Subitle playback requires third party application 'mkvextract' from mkvtoolnix, which is also included in the zip file. If not found, it will ask you if it should download it when starting the server! Furthermore, subtitle playback DOES NOT WORK IN FULLSCREEN MODE! This is very much in WIP state, and due to timelimits, couldn't fully test it. You may encounter some issues here!
+
+**= This feature can be very unstable, it may hang up on you without notice, you will need to manually restart the server unfortunately.
 
 ### Installation
 
@@ -51,6 +68,8 @@ This is a very early release, the code is horrible, and there might be many bugs
 ### Todos
 
 - MAKE CODE MORE MANAGEABLE
+- Make option for list view on cover view.
+- Reset server client side.
 - Let users abort downloads.
 - Fix on long waiting time before web interface connects with the backend.
 - Fix issue where you need to click twice on play on kodi button before anything happens on kodi.

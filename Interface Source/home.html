@@ -9,10 +9,10 @@
 <!--Let browser know website is optimized for mobile-->
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
-<script type="text/javascript" src="materialize/js/materialize.min.js">
+<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js" ></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.5/js/materialize.min.js"></script>
 
-</script>
+<script type="text/javascript" src="Javascript/SubtitlePlayer.js"></script>
 <script type="text/javascript">
 
     var received = false;
@@ -25,20 +25,27 @@
     var currentPage = "ANIMES";
     var isVideoPlaying = false;
     var loggedin = false;
+    var connectedWithBackend = false;
     var getLocalDownloads = false;
     var messageToSend = "GETDATA";
+
     window.onbeforeunload = function (event) {
         $.post("http://" + myIP + ":8028",
         {
             message: "IRCCLOSE"
-        });
+        }); 
     };
+
+    
+    $('#backendServer').openModal();
+
+    $('.lean-overlay').remove();
 
     function parseMessage(data) {
 
         if (!loggedin) {
             sendmsg("ISCLIENTRUNNING");
-        }
+        } 
 
         if (!getLocalDownloads) {
             sendmsg("GETLOCALFILES");
@@ -47,21 +54,43 @@
         if (data.indexOf("LOCALFILESRECEIVED") > -1) {
             getLocalDownloads = true;
         }
+        //irc information
 
         if (data.indexOf("loginsucces") > -1) {
-            loggedin = true;
-            $('#modal1').closeModal();
-            Materialize.toast('Succesfully logged in on IRC server!', 4000);
+            if (!loggedin) {
+                loggedin = true;
+                $('#IRCsettings').closeModal();
+                $('#connectToIrc').closeModal();
+                $('#chat').append(data.substring(data.indexOf(":") + 1) + "<br>");
+                $('#ircSettingConReCon').html('Reconnect');
+                Materialize.toast('Succesfully logged in on IRC server!', 4000);
+            }
         }
-        //irc information
+
         if (data.indexOf("irc:") > -1) {
-            loggedin = true;
-            $('#modal1').closeModal();
-            $('#chat').append(data.substring(data.indexOf(":") + 1) + "<br>");
+            if (!loggedin) {
+                loggedin = true;
+                $('#IRCsettings').closeModal();
+                $('#connectToIrc').closeModal();
+                $('#chat').append(data.substring(data.indexOf(":") + 1) + "<br>");
+                $('#ircSettingConReCon').html('Reconnect');
+                Materialize.toast('Succesfully logged in on IRC server!', 4000);
+            }
+        }
+
+        if (data.indexOf("loginfailed") > -1) {
+            if (loggedin) {
+                loggedin = false;
+                $('#connectToIrc').closeModal();
+                $('#IRCsettings').closeModal();
+                $('#chat').append(data.substring(data.indexOf(":") + 1) + "<br>");
+                $('#ircSettingConReCon').html('Connect');
+                Materialize.toast('Not connected to IRC!', 4000);
+            }
         }
 
         //download information
-        if (data.indexOf("download") > -1 && (data.indexOf("NO DOWNLOAD") == -1)) {
+        if (data.indexOf("download") > -1 && (data.indexOf("NO DOWNLOAD") == -1) && (data.indexOf(".ass") == -1) && (data.indexOf(".exe") == -1)) {
             var dldata = data.split('~');
             var downloadid = dldata[1];
             var file = dldata[2];
@@ -86,7 +115,7 @@
                                         <td>" + fileStatus + "</td>                                                                                             \
                                         <td>" + fileProgress + "%</td>                                                                                           \
                                         <td>" + fileSpeed + "</td>                                                                                              \
-                                        <td>" + kodi_button + " <a id=\"button" + downloadid + "\"  onclick=\"playVideo('http://" + myIP + ":8018/" + fileAddress + "');\" class=\"btn waves-effect waves-light\" target=\"_blank\"> Play </a><span style=\"width: 10px;\"></span> <a id=\"button" + downloadid + "\"  onclick=\"stopVideo();\" class=\"btn waves-effect waves-light\"  href=\"http://" + myIP + ":8018/" + fileAddress + "\"> Get File </a></td>   \
+                                        <td>" + kodi_button + " <a id=\"button" + downloadid + "\"  onclick=\"playVideo('http://" + myIP + ":8018/" + fileAddress + "');\" class=\"btn waves-effect waves-light\" target=\"_blank\"> Play </a><span style=\"width: 10px;\"></span> <a id=\"button" + downloadid + "\"  onclick=\"stopVideo();\" class=\"btn waves-effect waves-light\"  href=\"http://" + myIP + ":8038/" + fileAddress + "\"> Get File </a></td>   \
                                     </tr> \
                                  <tr><td colspan=\"5\"><div class=\"progress\" id=\"progressbar" + downloadid + "\">  <div class=\"determinate\" style=\"width: " + fileProgress + "%\"></div></div></td></tr>\
                     ";
@@ -103,7 +132,7 @@
                                         <td>" + fileStatus + "</td>                                                                                             \
                                         <td>" + fileProgress + "%</td>                                                                                           \
                                         <td>" + fileSpeed + " kb/s</td>                                                                                              \
-                                        <td>" + kodi_button + " <a id=\"button" + downloadid + "\"  onclick=\"playVideo('http://" + myIP + ":8018/" + fileAddress + "');\" class=\"btn waves-effect waves-light\" target=\"_blank\" > Play </a> <span style=\"width: 10px;\"></span><a id=\"button" + downloadid + "\"  onclick=\"stopVideo();\" class=\"btn waves-effect waves-light\"  href=\"http://" + myIP + ":8018/" + fileAddress + "\"> Get File </a></td>   \
+                                        <td>" + kodi_button + " <a id=\"button" + downloadid + "\"  onclick=\"playVideo('http://" + myIP + ":8018/" + fileAddress + "');\" class=\"btn waves-effect waves-light\" target=\"_blank\" > Play </a> <span style=\"width: 10px;\"></span><a id=\"button" + downloadid + "\"  onclick=\"stopVideo();\" class=\"btn waves-effect waves-light\"  href=\"http://" + myIP + ":8038/" + fileAddress + "\"> Get File </a></td>   \
                                        \
                     ";
                 $('#' + downloadid).html(tableRowContent);
@@ -119,7 +148,7 @@
                                         <td>" + fileStatus + "</td>                                                                                             \
                                         <td>100%</td>                                                                                           \
                                         <td></td>                                                                                              \
-                                        <td>" + kodi_button + "  <a id=\"button" + downloadid + "\"  onclick=\"playVideo('http://" + myIP + ":8018/" + fileAddress + "');\" class=\"btn waves-effect waves-light\" target=\"_blank\" > Play </a><span style=\"width: 10px;\"></span><a id=\"button" + downloadid + "\"  onclick=\"stopVideo();\" class=\"btn waves-effect waves-light\"  href=\"http://" + myIP + ":8018/" + fileAddress + "\"> Get File </a></td>   \
+                                        <td>" + kodi_button + "  <a id=\"button" + downloadid + "\"  onclick=\"playVideo('http://" + myIP + ":8018/" + fileAddress + "');\" class=\"btn waves-effect waves-light\" target=\"_blank\" > Play </a><span style=\"width: 10px;\"></span><a id=\"button" + downloadid + "\"  onclick=\"stopVideo();\" class=\"btn waves-effect waves-light\"  href=\"http://" + myIP + ":8038/" + fileAddress + "\"> Get File </a></td>   \
                                        \
                     ";
                 $('#' + downloadid).html(tableRowContent);
@@ -131,8 +160,115 @@
         }
     }
 
-   
+    var receivedCurrentlyAiring = false;
+    var receivedAllSeasons = false;
+    var receivedRequestedSeason = false;
+    var isConnected = false;
+    var onHistoryClicked = false;
     
+    function askServerForInfo() {
+        
+
+
+        if (loggedin) {
+            $('#ircSettingConReCon').html('Reconnect');
+        } else {
+            $('#ircSettingConReCon').html('Connect');
+        }
+
+        var msg = "";
+        if (!receivedAllSeasons) {
+            msg = "GETALLSEASONS";
+            console.log("PARSING SEASONS");
+        } else {
+            if (!receivedCurrentlyAiring) {
+                msg = "CURRENTSEASON";
+            } else {
+                if (messageToSend != "") {
+                    msg = messageToSend;
+                    messageToSend = "";
+                } else {
+                    msg = "GETDATA";
+                }
+
+            }
+        }
+        console.log("send: " + msg);
+        $.ajax({
+            type: 'POST',
+            data: { message: msg},
+            cache: false,
+            url: "http://" + myIP + ":8028",
+            success: function (data, status) {
+               
+                setTimeout(function () {
+                    askServerForInfo();
+                }, 1000);
+
+                
+
+                if (!isConnected) {
+                    Materialize.toast("Connected to WeebIRC Server :D", 4000);
+                    $('#backendServer').closeModal();
+                    getSettings();
+                     $('#connectToIrc').openModal();
+                    $('.lean-overlay').remove();
+                    isConnected = true;
+                }
+
+
+                var jsondata = JSON.parse(data);
+                $.each(jsondata.messages, function (key, value) {
+                    setTimeout(parseMessage(value), 0);
+                });
+                if (jsondata.rawjson != "" || jsondata.rawjson != null) {
+
+                    try {
+                        var animeObject = jsondata.rawjson[0].Anime[0];
+                        setTimeout(printAnimeCovers(animeObject), 0);
+                    } catch (ex) {
+                        console.log(ex);
+                    }
+
+                    try {
+                        var seasonsObject = jsondata.rawjson[0].allSeasons[0];
+                        if (!(seasonsObject === "undefined")) {
+                            console.log("PARSED SEASONS");
+                            console.log(seasonsObject);
+                            console.log(jsondata);
+                            setTimeout(getAllSeasons(seasonsObject), 0);
+                        }
+                    } catch (ex) {
+                        console.log("COULD NOT PARSE SEASONS");
+                        console.log(ex);
+                    }
+                }
+            }
+        }).fail(function (xhr, textStatus, errorThrown) {
+            if (isConnected) {
+                Materialize.toast("Lost connection to WeebIRC Server :(", 4000);
+                isConnected = false;
+            }
+        });
+    }
+    askServerForInfo();
+
+    function loadScript(url, callback) {
+        // Adding the script tag to the head as suggested before
+        var head = document.getElementsByTagName('head')[0];
+        var script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = url;
+
+        // Then bind the event to the callback function.
+        // There are several events for cross browser compatibility.
+        script.onreadystatechange = callback;
+        script.onload = callback;
+
+        // Fire the loading
+        head.appendChild(script);
+    }
+
     function playOnKODI(file) {
         var url = "http://" + myIP + '/jsonrpc?request={"jsonrpc":"2.0","id":"1","method":"Player.Open","params":{"item":{"file":"home/applications/WeebIRCServer/GUI/Downloads/' + file + '"}}}';
         var url2 = "http://" + myIP + '/jsonrpc?request={"jsonrpc":"2.0","id":"1","method":"Player.Open","params":{"item":{"file":"/home/applications/WeebIRCServer/GUI/Downloads/' + file + '"}}}';
@@ -164,59 +300,57 @@
         });
     }
 </script>
+
 <body onunload="closecon()">
     <ul id="animeSeasonsFS" style="width: 200px;" class="dropdown-content">
     </ul>
     <nav>
         <div class="nav-wrapper customBlue">
-            <a href="#chat" class="brand-logo hide-on-med-and-down">WeebIRC</a>
-            <center><span class="center-align brand-logo" id="page"> Chat </span></center>
-            <a href="#" data-activates="slide-out" class="button-collapse"><i class="material-icons">menu</i></a>
-            <ul id="nav-mobile" class="right">
-                <div class="hide-on-med-and-down">
-                    <li><a href="#" onclick="onAnimeClick()" class="dropdown-button"  data-activates="animeSeasonsFS">Anime<i class="material-icons right">local_movies</i></a></li>
-                    <li><a href="#" onclick="onSearchClick()"><i class="material-icons">search</i></a></li>
-                    <li><a href="#" onclick="onChatClick()"><i class="material-icons">chat</i></a></li>
-                    <li><a href="#" onclick="onDlClick()"><i class="material-icons">file_download</i></a></li>
-                    <li><a class="modal-trigger" onclick="getSettings()" href="#settings"><i class="material-icons">settings</i></a></li>
-                </div>
-                <div class="hide-on-large-only">
-                    <li><a href="#" onclick="onSearchClick()"><i class="material-icons">search</i></a></li>
-                </div>
+            <center><span class="center-align brand-logo" id="page"> Chat </span></center>            
+            <a href="#" onclick="onSearchClick()"><i class="material-icons right">search</i></a>
+
+            <a href="#" data-activates="slide-out" class="slideActivator"><i class="material-icons">menu</i></a> 
+
+            <ul id="slide-out" class="side-nav">
+                <li><a href="#" onclick="onAnimeClick()"><i class="material-icons left">local_movies</i> Anime</a></li>
+                <div id="currentlyWatching"> <li><a href="#" onclick=""><i class="material-icons left">movie</i> Currently Watching</a></li></div>
+                <li class="no-padding">
+                    <ul class="collapsible collapsible-accordion">
+                        <li>
+                            <a href="#" class="collapsible-header"><i class="material-icons left">date_range</i>Seasons</a>
+                            <div class="collapsible-body">
+                                <ul class="animeSeasons"></ul>
+                            </div>
+                        </li>
+                    </ul>
+                </li>
+                <li><a href="#" onclick="onHistoryClick()"><i class="material-icons left">history</i> History</a></li>
+                <li><a href="#" onclick="onChatClick()"><i class="material-icons left">chat</i> Chat</a></li>
+                <li><a href="#" onclick="onDlClick()"><i class="material-icons left">file_download</i> Downloads</a></li>
+                <li><a href="#" onclick="onVideoPlayerClick()"><i class="material-icons left">play_circle_filled</i> Video Player</a></li>
+                <li><a class="modal-trigger" onclick="getSettings()" href="#settings"><i class="material-icons left">settings</i> Client Settings </a></li>
+                <li><a class="modal-trigger" href="#IRCsettings"><i class="material-icons left">settings</i> IRC Settings </a></li>
+               <!--<li><a class="modal-trigger" href="#ServerReset"><i class="material-icons left">autorenew</i> Reset Server </a></li>--> 
             </ul>
-                <ul id="slide-out" class="side-nav">
-                    <li class="no-padding">
-                        <ul class="collapsible collapsible-accordion">
-                            <li>
-                                <a href="#" onclick="onAnimeClick()" class="collapsible-header"><i class="material-icons left">local_movies</i> Anime</a>
-                                <div class="collapsible-body">
-                                    <ul class="animeSeasons"></ul>
-                                </div>
-                            </li>
-                        </ul>
-                    </li>
-                    <li><a href="#" onclick="onChatClick()"><i class="material-icons left">chat</i> Chat</a></li>
-                    <li><a href="#" onclick="onDlClick()"><i class="material-icons left">file_download</i> Downloads</a></li>
-                    <li><a class="modal-trigger" onclick="getSettings()" href="#settings"><i class="material-icons left">settings</i> Settings </a></li>
-                </ul>
-</div>
+        </div>
     </nav>
+
     <div class="container" id="loading">
         <div class="row" style="width: 100%; height:100%;">
             <div class="col s12 valign-wrapper" style="width: 100%; height:100%;">
-                    <div style="margin-left: 50%; margin-right: 50%;">
-                        <div class="preloader-wrapper big active valign">
-                            <div class="spinner-layer spinner-green-only">
-                                <div class="circle-clipper left">
-                                    <div class="circle"></div>
-                                </div><div class="gap-patch">
-                                    <div class="circle"></div>
-                                </div><div class="circle-clipper right">
-                                    <div class="circle"></div>
-                                </div>
+                <div style="margin-left: 50%; margin-right: 50%;">
+                    <div class="preloader-wrapper big active valign">
+                        <div class="spinner-layer spinner-green-only">
+                            <div class="circle-clipper left">
+                                <div class="circle"></div>
+                            </div><div class="gap-patch">
+                                <div class="circle"></div>
+                            </div><div class="circle-clipper right">
+                                <div class="circle"></div>
                             </div>
                         </div>
                     </div>
+                </div>
             </div>
         </div>
     </div>
@@ -265,18 +399,36 @@
         <div id="anime"></div>
     </div>
 
-    <div class="container" id="animedetail" >
+    <div class="col s12">
+        <div id="history"></div>
     </div>
+    <div class="col s12">
+        <div id="videoplayer">
+            <center>
+            <div class="outer-container">
+                <div class="inner-container">
+                    <div class="video-overlay" id="subtitle"></div>
+                    <video id="video" class="video-with-overlay" preload='auto' controls>
+                        Your browser does not support HTML5 video.
+                    </video>
+                </div>
+            </div>
+           </center>
+        </div>
+    </div>
+        <div class="container" id="animedetail">
+        </div>
 
-        
+
+   
         <!-- Modal Structure -->
-        <div id="modal1" class="modal">
+        <div id="connectToIrc" class="modal">
             <div class="modal-content">
                 <h4>IRC Setup</h4>
                 <input class="server inputFocus" style="width: 100%" type="text"><br />
                 <input class="channel inputFocus" style="width: 100%" type="text"><br />
                 <input class="username inputFocus" style="width: 100%" type="text"><br />
-                <span class="left"> Auto Connect: </span>  
+                <span class="left"> Auto Connect: </span>
                 <div class="switch right">
                     <form>
                         <input type="checkbox" id="autoconnect" class="autoconnectsw" onclick="setAutoConnect()" />
@@ -286,19 +438,32 @@
             </div>
             <div class="modal-footer">
 
-                <button class="btn waves-effect waves-light" style="width: 100%" onclick="setTimeout(connectirc(), 0); saveSettings();">Save and Connect </button>
+                <button class="btn waves-effect waves-light" style="width: 100%" onclick="connectirc(); saveSettings();">Save and Connect </button>
             </div>
         </div>
-        
+
         <div id="settings" class="modal">
             <div class="modal-content">
                 <h4>SETTINGS</h4>
                 <p>
-                    <span class="left"> Reset all synonyms: </span>  <a href="#" class="btn waves-effect waves-light right" onclick="onLocalStorageReset()">Reset</a><br />
-                    <input class="server inputFocus" style="width: 100%"  type="text"><br />
+                <p>
+                    <span class="left"> Reset all synonyms: </span>  <a href="#" class="btn waves-effect waves-light right" onclick="onLocalStorageReset('synonyms')">Reset</a><br />
+                </p>
+                <p>
+                    <span class="left"> Reset History: </span>  <a href="#" class="btn waves-effect waves-light right" onclick="onLocalStorageReset('history')">Reset</a><br />
+                </p>
+
+            </div>
+        </div>
+
+        <div id="IRCsettings" class="modal">
+            <div class="modal-content">
+                <p>
+                    <h4>IRC SETTINGS</h4>
+                    <input class="server inputFocus" style="width: 100%" type="text"><br />
                     <input class="channel inputFocus" style="width: 100%" type="text"><br />
-                    <input class="username inputFocus" style="width: 100%"  type="text"><br />
-                    <span class="left"> Auto Connect: </span>  
+                    <input class="username inputFocus" style="width: 100%" type="text"><br />
+                    <span class="left"> Auto Connect: </span>
                     <div class="switch right">
                         <form>
                             <input type="checkbox" id="autoconnect" class="autoconnectsw" onclick="setAutoConnect()" />
@@ -306,1010 +471,1052 @@
                         </form>
                     </div>
                 </p>
-                
+
             </div>
             <div class="modal-footer">
 
-                <button class="btn waves-effect waves-light" style="width: 100%" onclick="saveSettings()"> Save </button>
+                <button id="ircSettingConReCon" onclick="connectirc(); saveSettings();" class="btn waves-effect waves-light left" style="width: 48%">  </button>
+                <button class="btn waves-effect waves-light right" style="width: 48%" onclick="sendmsg('IRCCLOSE')"> Disconnect </button>
             </div>
         </div>
 
-    <div id="player" class="modal">
-        <div class="modal-content">
-            <h4>Video</h4>
-            <p>
-                <center>
-                    <video preload="none" width="640" id="video" controls>
-                        Your browser does not support HTML5 video.
-                    </video>
-                </center>
-            </p>
+        <div id="backendServer" class="modal">
+            <div class="modal-content">
+                <p>
+                    <h4><center>Waiting for connection with server!</center></h4>
+                </p>
+                <p>
+                    <h6><center>Unfortunately loading materializecss javascript takes a lot of time at launch, hence why it takes aprox 10-15 seconds till the connection with the server is made.<br />
+                        My sincere apologie for that, I (The Developer) will try to fix this issue as soon as possible.</center></h6>
+                </p>
 
+            </div>
+            <div class="modal-footer">
+            </div>
+         </div>
+
+        <div id="ServerReset" class="modal">
+            <div class="modal-content">
+                <p>
+                    <h4><center>Server Reset?</center></h4><br />
+                   By choosing this option all the running servers will be reset, which is handy if somehow the stream fails or something like that. <br />But if nothing happens after doing this, you probably have to manually restart the server!.
+                </p>
+
+            </div>
+            <div class="modal-footer">
+                <button onclick="resetServer()" class="btn modal-action modal-close waves-effect waves-light left" style="width: 48%"> Yes  </button>
+                <button class="btn modal-action modal-close waves-effect waves-light right" style="width: 48%" > No.</button>
+            </div>
         </div>
-    </div>
+
+        <!---->
 
 
-    <!---->
+        <script type="text/javascript">
+            $(document).ready(function () {
+                // the "href" attribute of .modal-trigger must specify the modal ID that wants to be triggered
+                $('.modal-trigger').leanModal({
+                    dismissible: true, // Modal can be dismissed by clicking outside of the modal
+                    complete: function () { $('.lean-overlay').remove(); console.log("removed lean overlay :X");}
+                });
+                var isThereFocus = false;
+
+                $(document).focusin(function () {
+                    isThereFocus = true;
+                    console.log("focusin");
+                });
+                $(document).focusout(function () {
+                    isThereFocus = false;
+                    console.log("focusout");
+                });
+
+                $('.dropdown-button').dropdown({
+                    inDuration: 300,
+                    outDuration: 225,
+                    hover: true, // Activate on hover
+                    belowOrigin: true, // Displays dropdown below the button
+                    alignment: 'right' // Displays dropdown with edge aligned to the left of button
+                });
 
 
-    <script type="text/javascript">
+                $('.slideActivator').sideNav({
+                    menuWidth: 300,
+                    closeOnClick: true // Closes side-nav on <a> clicks, useful for Angular/Meteor
+                });
 
-    
-    //to make sure a new websocket connection can be made on reload or closing of webpage
-    $(window).on('beforeunload', function () {
-        sendircmsg("/quit");
-        sendmsg("IRCCLOSE");
-    });
-    
-    //check if textfields are focussed, prevents priviousPage from executing when typing backspace in textfields
-    var isThereFocus = false;
-
-    $(document).focusin(function () {
-        isThereFocus = true;
-        console.log("focusin");
-    });
-    $(document).focusout(function () {
-        isThereFocus = false;
-        console.log("focusout");
-    });
-
-    
-
-    function stopVideo() {
-        if (isVideoPlaying) {
-            var video = document.getElementById('video');
-            var source = document.createElement('source');
-
-            source.setAttribute('src', "");
-
-            video.appendChild(source);
-            video.load();
-            $('#player').openModal();
-            $('#player').closeModal();
-            isVideoPlaying = false;
-        }
-    }
-
-    function playVideo(url) {
-        var video = document.getElementById('video');
-        var source = document.createElement('source');
-
-        source.setAttribute('src', url);
-
-        video.appendChild(source);
-        video.load();
-        $('#player').openModal();
-        isVideoPlaying = true;
-    }
-
-    //check if localstorage is available
-    var localStorage;
-    function storageAvailable(type) {
-        try {
-            localStorage = window[type],
-                x = '__storage_test__';
-            localStorage.setItem(x, x);
-            localStorage.removeItem(x);
-            return true;
-        }
-        catch (e) {
-            return false;
-        }
-    }
-    //send msg to websocket server
-    function sendmsg(text) {
-        messageToSend = text;
-    }
-    //send irc 
-    function onSendClick() {
-        var msg = $('#sendmsg').val();
-        sendircmessage(msg);
-    }
-    
-    //send msg with irc prefix
-    function sendircmessage(text) {
-        var msg = "irc:" + text;
-        tempMsgSend = msg;
-        console.log("sending irc: " + msg);
-        sendmsg(msg);
-        $('#sendmsg').val("");
-    }
-
-    //reset local storage
-    function onLocalStorageReset() {
-        if (storageAvailable('localStorage')) {
-            localStorage.clear();
-            console.log("local storage cleared");
-        }
-    }
-
-    //go to previous page
-    function goToPrevious() {
-        console.log("PREVIOUS PRESSED");
-        console.log(currentPage);
-        console.log(lastPage);
-        console.log(currentAnime);
-        if (!isThereFocus) {
-            if (lastPage != "") {
-                if (lastPage == "ANIMES") {
-                    onAnimeClick();
-                } else if (lastPage == "CHAT") {
-                    onChatClick();
-                } else if (lastPage == "DOWNLOADS") {
-                    onDlClick();
-                } else if (lastPage == "ANIMEDETAILS") {
-                    animeClicked(currentAnime);
-                }
-            }
-        } else {
-            console.log("Something has been focussed, previous disabled :D");
-        }
-       
-    }
-    
-    //set auto connect to irc server on page load
-    function setAutoConnect() {
-        console.log("autoconnect clicked");
-        if (storageAvailable('localStorage')) {
-            if ($('.autoconnectsw').is(':checked')) {
-                localStorage.setItem("autoconnect", "1");
-                Materialize.toast('Auto Connect Enabled', 4000);
-            } else {
-                localStorage.setItem('autoconnect', "0");
-                Materialize.toast('Auto Connect Disabled', 4000);
-            }
-        }
-    }
-
-    //save local settings
-    function saveSettings() {
-        if (storageAvailable('localStorage')) {
-            var server = $('.server').val();
-            var channel = $('.channel').val();
-            var username = $('.username').val();
-            console.log(currentPage);
-            console.log(lastPage);
-            console.log(currentAnime);
-            localStorage.setItem("server", server);
-            localStorage.setItem("channel", channel);
-            localStorage.setItem("username", username);
-            Materialize.toast('Saved Settings!', 4000);
-            $('#settings').closeModal();
-        } else {
-            Materialize.toast('Could not save Settings!', 4000);
-            $('#settings').closeModal();
-        }
-    }
-
-    //get local settings
-    function getSettings() {
-        if (storageAvailable('localStorage')) {
-            if ((localStorage.getItem("server") != null) && (localStorage.getItem("channel") != null) && (localStorage.getItem("username") != null)) {
-                var server = localStorage.getItem("server");
-                var channel = localStorage.getItem("channel");
-                var username = localStorage.getItem("username");
-                if (server == "") {
-                    server = "irc.rizon.net";
-                    Materialize.toast('Server not set, using default server!', 4000);
-                }
-                if (channel == "") {
-                    channel = "#horriblesubs,#nibl,#news,#intel";
-                    Materialize.toast('Channel(s) not set, using default channel(s)!', 4000);
-                }
-                if (username == "") {
-                    
-                    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
-                    for (var i = 0; i < 6; i++) {
-                        username += possible.charAt(Math.floor(Math.random() * possible.length));
-                    }
-                    Materialize.toast('Username not set, generating username!', 4000);
-                }
-                $('.server').val(server);
-                $('.channel').val(channel);
-                $('.username').val(username);
-                if ((localStorage.getItem("autoconnect") != null) && (localStorage.getItem("autoconnect") == "1")) {
-                    $('.autoconnectsw').prop('checked', true);
-                    if (!loginIsRunning) {
-                        connectirc();
-                    }
-                } else {
-                    $('.autoconnectsw').prop('checked', false);
-                }
-            }
-
-        } else {
-            Materialize.toast('Could not load Settings!', 4000);
-        }
-    }
-
-
-    function onSearchClick() {
-        $('#search').toggle("slow");
-    }
-
-    function connectirc() {
-        var server = $('.server').val();
-        var channel = $('.channel').val();
-        var username = $('.username').val();
-        sendmsg("server: " + server + " channel: " + channel + " username: " + username + " junk: this is junk");
-    }
-  
-   
-    $(document).ready(setTimeout(function () {
-        var isConnected = false;
-        // the "href" attribute of .modal-trigger must specify the modal ID that wants to be triggered
-        $('.modal-trigger').leanModal({
-            dismissible: true, // Modal can be dismissed by clicking outside of the modal
-            complete: function () { stopVideo(); } // Callback for Modal close
-        });
-
-
-        $('.dropdown-button').dropdown({
-            inDuration: 300,
-            outDuration: 225,
-            hover: true, // Activate on hover
-            belowOrigin: true, // Displays dropdown below the button
-            alignment: 'right' // Displays dropdown with edge aligned to the left of button
-        });
-
-
-        $('.button-collapse').sideNav({
-            closeOnClick: true // Closes side-nav on <a> clicks, useful for Angular/Meteor
-        });
-
-        
-
-        setTimeout(function () {
-            var interval = setInterval(function () {
-                var msg = "";
-                if (messageToSend != "") {
-                    msg = messageToSend;
-                    messageToSend = "";
-                } else {
-                    msg = "GETDATA";
-                }
-
-                console.log("send: " + msg);
-                $.post("http://" + myIP + ":8028",
-               {
-                   message: msg
-               },
-               function (data, status) {
-                   if (!isConnected) {
-                       Materialize.toast("Connected to WeebIRC Server :D", 4000);
-                       isConnected = true;
-                   }
-                   var jsondata = JSON.parse(data);
-                   $.each(jsondata.messages, function (key, value) {
-                       setTimeout(parseMessage(value), 0);
-                   });
-               }).fail(function (xhr, textStatus, errorThrown) {
-                   if (isConnected) {
-                       Materialize.toast("Lost connection to WeebIRC Server :(", 4000);
-                       isConnected = false;
-                   }
-               });
-            }, 1000)
-        }, 5000);
-
-        //load anime
-        setTimeout(function () { getAllSeasons(); getAndPrintAnime('http://myanimelist.net/anime/season'); }, 0);
-        //print anime
-        setTimeout(onAnimeClick(), 0);
-
-
-       
-        //listens for backspace pressed
-        jQuery(function ($) {
-            var input = $(document);
-            input.on('keydown', function () {
-                var key = event.keyCode || event.charCode;
-
-                if (key == 8 || key == 46)
-                    goToPrevious();
+                $(window).on('beforeunload', function () {
+                    sendircmsg("/quit");
+                    sendmsg("IRCCLOSE");
+                });
             });
-        });
-        //android back button listener
-        document.addEventListener('backbutton', onBackKeyDown, false);
-        //goes to previous page 
-        function onBackKeyDown(event) {
-            // Handle the back button
-            event.preventDefault();
-            goToPrevious();
-        }
-        //send message in chat;
-        $("#sendmsg").keyup(function (event) {
-            if (event.keyCode == 13) {
+
+            function resetServer() {
+                sendmsg("SERVERRESET");
+                $('#tablebody').html('');
+                isVideoPlaying = false;
+                loggedin = false;
+                connectedWithBackend = false;
+                getLocalDownloads = false;
+                Materialize.toast("SERVER IS BEING RESETTED!", 4000);
+            }
+
+            //listens for backspace pressed
+            jQuery(function ($) {
+                var input = $(document);
+                input.on('keydown', function () {
+                    var key = event.keyCode || event.charCode;
+
+                    if (key == 8 || key == 46)
+                        goToPrevious();
+                });
+            });
+            //android back button listener
+            document.addEventListener('backbutton', onBackKeyDown, false);
+            //goes to previous page
+            function onBackKeyDown(event) {
+                // Handle the back button
+                event.preventDefault();
+                goToPrevious();
+            }
+            //send message in chat;
+            $("#sendmsg").keyup(function (event) {
+                if (event.keyCode == 13) {
+                    var msg = $('#sendmsg').val();
+                    console.log("sending irc: " + msg);
+                    sendircmessage(msg);
+                    $('#sendmsg').val("");
+                }
+            });
+            //check if textfields are focussed, prevents priviousPage from executing when typing backspace in textfields
+
+
+
+            (function () {
+                document.onmousemove = handleMouseMove;
+                function handleMouseMove(event) {
+                    var dot, eventDoc, doc, body, pageX, pageY;
+
+                    event = event || window.event; // IE-ism
+
+                    // If pageX/Y aren't available and clientX/Y are,
+                    // calculate pageX/Y - logic taken from jQuery.
+                    // (This is to support old IE)
+                    if (event.pageX == null && event.clientX != null) {
+                        eventDoc = (event.target && event.target.ownerDocument) || document;
+                        doc = eventDoc.documentElement;
+                        body = eventDoc.body;
+                        event.pageX = event.clientX +
+                          (doc && doc.scrollLeft || body && body.scrollLeft || 0) -
+                          (doc && doc.clientLeft || body && body.clientLeft || 0);
+                        event.pageY = event.clientY +
+                          (doc && doc.scrollTop || body && body.scrollTop || 0) -
+                          (doc && doc.clientTop || body && body.clientTop || 0);
+                    }
+                    var isHidden = true;
+                    if (event.pageY < 100) {
+                        if (isHidden) {
+                            $('#navbar').fadeIn();
+                            console.log("showing nav bar");
+                            isHidden = false;
+                        }
+
+                    }
+                    if (event.pageY > 50 && event.pageX > 250) {
+                        if (!isHidden) {
+                            isHidden = true;
+                            console.log("hiding navbar");
+                            setTimeout(function () {
+                                $('#navbar').fadeOut();
+                            }, 5000);
+                        }
+
+                    }
+                    // Use event.pageX / event.pageY here
+                }
+            })();
+            setTimeout(function () { $('#navbar').fadeOut(); isHidden = true; }, 4000);
+
+            function stopVideo() {
+                if (isVideoPlaying) {
+                    var video = document.getElementById('video');
+                    var source = document.getElementById('vidsrc');
+
+                    source.setAttribute('src', "");
+                    video.load();
+
+                    resetSubtitle();
+                    isVideoPlaying = false;
+                }
+            }
+
+            function playVideo(url) {
+                stopVideo();
+                url = url.split('?')[0];
+                var subUrlP = url.replace(".mkv", ".ass").replace("8018", "8008");
+                console.log(subUrlP);
+                var video = document.getElementById('video');
+                var source = document.createElement('source');
+                source.setAttribute('id', "vidsrc");
+                source.setAttribute('src', url + "?stream");
+
+                video.appendChild(source);
+                video.load();
+
+
+                onVideoPlayerClick();
+                var subtitleFound = getSubtitle(subUrlP, video);
+                console.log(subtitleFound);
+
+
+                if (subtitleFound) {
+                    Materialize.toast('Subtitle Found! ', 4000);
+                } else {
+                    resetSubtitle();
+                }
+
+                isVideoPlaying = true;
+            }
+
+            //check if localstorage is available
+            var localStorage;
+            function storageAvailable(type) {
+                try {
+                    localStorage = window[type],
+                        x = '__storage_test__';
+                    localStorage.setItem(x, x);
+                    localStorage.removeItem(x);
+                    return true;
+                }
+                catch (e) {
+                    return false;
+                }
+            }
+            //send msg to websocket server
+            function sendmsg(text) {
+                messageToSend = text;
+            }
+            //send irc
+            function onSendClick() {
                 var msg = $('#sendmsg').val();
-                console.log("sending irc: " + msg);
                 sendircmessage(msg);
+            }
+
+            //send msg with irc prefix
+            function sendircmessage(text) {
+                var msg = "irc:" + text;
+                tempMsgSend = msg;
+                console.log("sending irc: " + msg);
+                sendmsg(msg);
                 $('#sendmsg').val("");
             }
-        });
-    }, 0));
 
-    //show currently downloading list
-    function onDlClick() {
-        $(document).ready(function () {
-            lastPage = currentPage;
-            currentPage = "DOWNLOADS";
-            $("#dlpage").show();
-            $("#chatwindow").hide();
-            $("#anime").hide();
-            $("#animedetail").hide();
-            $("#loading").hide();
-            $("#page").html("Downloads");
-        });
-    }
-    
-    //opens chat page (normally not used often)
-    function onChatClick() {
-        $(document).ready(function () {
-            lastPage = currentPage;
-            currentPage = "CHAT";
-            $("#chatwindow").show();
-            $("#dlpage").hide();
-            $("#anime").hide();
-            $("#animedetail").hide();
-            $("#loading").hide();
-            $("#page").html("Chat");
-        });
-    }
-    
-    //opens page with anime covers (default page)
-    function onAnimeClick() {
-        $(document).ready(function () {
-            lastPage = currentPage;
-            currentPage = "ANIMES";
-            $("#anime").show();
-            $("#chatwindow").hide();
-            $("#dlpage").hide();
-            $("#animedetail").hide();
-            $("#loading").hide();
-            $("#page").html("Anime");
-        });
-    }
-    
-    function showLoadScreen() {
-        $(document).ready(function () {
-            $("#anime").hide();
-            $("#chatwindow").hide();
-            $("#dlpage").hide();
-            $("#animedetail").hide();
-            $("#loading").show();
-            $("#page").html("Anime");
-        });
-    }
-        //get all anime covers from myanimelist url
+            //reset local storage
+            function onLocalStorageReset(type) {
+                if (storageAvailable('localStorage')) {
+                    if (type == "synonyms") {
+                        for (var i = 0, len = localStorage.length; i < len; ++i) {
+                            var item = localStorage.key(i);
+                            if (item != "history" && item != "server" && item != "channel" && item != "username" && item != "autoconnect") {
+                                localStorage.removeItem(item);
+                            }
+                        }
+                        Materialize.toast('Synonyms Resetted! ', 4000);
+                    } else if (type == 'history') {
+                        localStorage.removeItem("history");
+                        Materialize.toast('History Resetted! ', 4000);
+                    }
+                }
+            }
 
-
-    function getAllSeasons() {
-        var url = "?url:http://myanimelist.net/anime/season/archive";
-        $.ajax({
-            url: url, success: function (data) {
-                var htmlMalSeason = data.replace(/(\r\n|\n|\r)/gm, "");
-                // then you can manipulate your text as you wish
-                var div = document.createElement('div');
-
-                div.innerHTML = htmlMalSeason;
-
-                var seasonsByUrl = div.getElementsByClassName("anime-seasonal-byseason")[0].getElementsByTagName('a');
-
-                
-                var output = "";
-
-                var amountOfTags = seasonsByUrl.length;
-                for (var i = 0; i < amountOfTags; i++) {
-
-                    var animeseason = (seasonsByUrl[i].innerText || seasonsByUrl[i].textContent).trim();
-                    var animeSeasonlink = (seasonsByUrl[i].getAttribute("href")).trim();
-
-                 
-                    output = output + '<li><a href="#!" onclick="setTimeout(function(){showLoadScreen(); getAndPrintAnime(\'' + animeSeasonlink + '\'); onAnimeClick();}, 0);">' + animeseason + '</a></li>';
+            //go to previous page
+            function goToPrevious() {
+                console.log("PREVIOUS PRESSED");
+                console.log(currentPage);
+                console.log(lastPage);
+                console.log(currentAnime);
+                if (!isThereFocus) {
+                    if (lastPage != "") {
+                        if (lastPage == "ANIMES") {
+                            onAnimeClick();
+                        } else if (lastPage == "CHAT") {
+                            onChatClick();
+                        } else if (lastPage == "DOWNLOADS") {
+                            onDlClick();
+                        } else if (lastPage == "ANIMEDETAILS") {
+                            animeClicked(currentAnime);
+                        } else if (lastPage == "HISTORY") {
+                            onHistoryClick();
+                        } else if (lastPage == "VIDEOPLAYER") {
+                            onVideoPlayerClick();
+                        }
+                    }
+                } else {
+                    console.log("Something has been focussed, previous disabled :D");
                 }
 
+            }
+
+            //set auto connect to irc server on page load
+            function setAutoConnect() {
+                console.log("autoconnect clicked");
+                if (storageAvailable('localStorage')) {
+                    if ($('.autoconnectsw').is(':checked')) {
+                        localStorage.setItem("autoconnect", "1");
+                        Materialize.toast('Auto Connect Enabled', 4000);
+                        $('.autoconnectsw').prop('checked', true);
+                    } else {
+                        localStorage.setItem('autoconnect', "0");
+                        Materialize.toast('Auto Connect Disabled', 4000);
+                        $('.autoconnectsw').prop('checked', false);
+                    }
+                }
+            }
+
+            //save local settings
+            function saveSettings() {
+                if (storageAvailable('localStorage')) {
+                    var server = $('.server').val();
+                    var channel = $('.channel').val();
+                    var username = $('.username').val();
+                    console.log(currentPage);
+                    console.log(lastPage);
+                    console.log(currentAnime);
+                    localStorage.setItem("server", server);
+                    localStorage.setItem("channel", channel);
+                    localStorage.setItem("username", username);
+                    Materialize.toast('Saved Settings!', 4000);
+                    $('#settings').closeModal();
+                } else {
+                    Materialize.toast('Could not save Settings!', 4000);
+                    $('#settings').closeModal();
+                }
+            }
+
+            //get local settings
+            function getSettings() {
+                if (storageAvailable('localStorage')) {
+                    if ((localStorage.getItem("server") != null) && (localStorage.getItem("channel") != null) && (localStorage.getItem("username") != null)) {
+                        var server = localStorage.getItem("server");
+                        var channel = localStorage.getItem("channel");
+                        var username = localStorage.getItem("username");
+                        if (server == "") {
+                            server = "irc.rizon.net";
+                            Materialize.toast('Server not set, using default server!', 4000);
+                        }
+                        if (channel == "") {
+                            channel = "#horriblesubs,#nibl,#news,#intel";
+                            Materialize.toast('Channel(s) not set, using default channel(s)!', 4000);
+                        }
+                        if (username == "") {
+
+                            var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+                            for (var i = 0; i < 6; i++) {
+                                username += possible.charAt(Math.floor(Math.random() * possible.length));
+                            }
+                            Materialize.toast('Username not set, generating username!', 4000);
+                        }
+                        $('.server').val(server);
+                        $('.channel').val(channel);
+                        $('.username').val(username);
+                        if ((localStorage.getItem("autoconnect") != null) && (localStorage.getItem("autoconnect") == "1")) {
+                            $('.autoconnectsw').prop('checked', true);
+                            if (!loginIsRunning) {
+                                connectirc();
+                            }
+                        } else {
+                            $('.autoconnectsw').prop('checked', false);
+                        }
+                    }
+
+                } else {
+                    Materialize.toast('Could not load Settings!', 4000);
+                }
+            }
+
+
+            function onSearchClick() {
+                $('.search').toggle("slow");
+            }
+
+            function connectirc() {
+                var server = $('.server').val();
+                var channel = $('.channel').val();
+                var username = $('.username').val();
+                sendmsg("server: " + server + " channel: " + channel + " username: " + username + " junk: this is junk");
+            }
+
+            function printAnimeCovers(animeJson, div) {
+                console.log(animeJson);
+                if (!receivedCurrentlyAiring || receivedRequestedSeason || onHistoryClicked) {
+                    receivedRequestedSeason = false;
+                    receivedCurrentlyAiring = true;
+                    onHistoryClicked = false;
+                    var output = '<div class="container"><div class="row"><div class="col s12 search" ><p><input class="inputFocus searchInput" style="width: 100%" type="text" value="Search" /></p></div></div></div>';
+                    var i = 0;
+                    $.each(animeJson, function (key, value) {
+                        var animeLink = "nolink";
+                        var animeTitle = key;
+                        var animeCover = value[0].cover;
+                        var animeSynopsis = value[0].synopsis.replace(/[`~!@#$%^&*()_|+\-=?;:'"\{\}\[\]\\\/]/gi, '').replace(/(\r\n|\n|\r)/gm, "<br>");
+                        var animeGenres = value[0].animeGenres;
+                        var animeScore = value[0].score;
+                        var id = 0;
+                        output = output + '<div class="hide-on-med-and-down selectionHover">\
+                                    <div class="card customCard" imgid="' + id + '"> \
+                                        <div class="card-image customCard-image">\
+                                            <img class="customCard-image" onclick="animeClicked(\'' + animeLink + '~' + animeCover + '~' + animeTitle + '~' + animeSynopsis + '~' + animeGenres + '\')" src="' + animeCover + '" />\
+                                            <span class="card-title alpha60 customCard-title">\
+                                                <h6>' + animeTitle + '</h6>\
+                                            </span>\
+                                        </div>\
+                                      </div>\
+                                    </div>'
+                               +
+                                               '<div class="hide-on-large-only row valign-wrapper selectionHover" onclick="animeClicked(\'' + animeLink + '~' + animeCover + '~' + animeTitle + '~' + animeSynopsis + '~' + animeGenres + '\')">\
+                                        <div class="col s12" style="margin-top: 2%;">\
+                                            <div class="col s3">\
+                                                <img class="mobileCustomImg" src="' + animeCover + '" /> \
+                                            </div>\
+                                            <div class="col s9">\
+                                                <span>\
+                                                    <center><h5 class="valign center-align">' + animeTitle + '</h6><hr>\
+                                                    ' + animeGenres + '\
+                                               </center> </span>\
+                                           </div>\
+                                        </div>\
+                                        <hr>\
+                                    </div>';
+
+                        i++;
+                    });
+
+
+                }
+
+                $(document).ready(function () {
+                    if (div == null || div == "anime") {
+
+                        onAnimeClick();
+                        $("#anime").html(output);
+                    } else if (div == "history") {
+                        //onHistoryClick();
+                        $("#history").html(output);
+                    }
+                    $("#loading").hide();
+                    $('.search').hide();
+                    $(".searchInput").keyup(function (event) {
+                        if (event.keyCode == 13) {
+                            var searchparam = $('.searchInput').val().replace(' ', '%20');
+                            var url = 'http://myanimelist.net/anime.php?q=' + searchparam;
+                            receivedRequestedSeason = true;
+                            showLoadScreen();
+                            sendmsg("SEARCHANIME~" + url);
+                            console.log("Searching url: " + url);
+                        }
+                    });
+                    $(".searchInput").click(function (event) {
+                        $('.searchInput').val("");
+                    });
+                });
+
+            }
+
+            function getAllSeasons(seasons) {
+
+                if (!receivedAllSeasons) {
+                    receivedAllSeasons = true;
+                    var output = "";
+                    $.each(seasons, function (key, value) {
+                        output = output + '<li><a href="#!" onclick="setTimeout(function(){showLoadScreen(); getAndPrintAnime(\'' + key + '\',\'' + value + '\'); onAnimeClick();}, 0);">' + value + '</a></li>';
+
+                    });
+                }
                 $(document).ready(function () {
                     $("#animeSeasonsFS").html(output);
                     $(".dropdown-button").dropdown();
 
                     $(".animeSeasons").html(output);
                 });
+
             }
-        });
-    }
 
-    function getAndPrintAnime(rawurl) {
-        setTimeout(showLoadScreen(), 0);
-        var url = "?url:" + rawurl;
-        $.ajax({
-            url: url, success: function (data) {
-                htmlMalSeason = data.replace(/(\r\n|\n|\r)/gm, "");
-                // then you can manipulate your text as you wish
-                var div = document.createElement('div');
+            function getAndPrintAnime(url, season) {
+                receivedRequestedSeason = true;
+                showLoadScreen();
+                sendmsg("GETSEASON~" + url + "~" + season.replace(" ", ""));
+            }
 
-                div.innerHTML = htmlMalSeason;
+          
 
-                var animeimg = div.getElementsByClassName("image");
-                var animesynopsis = div.getElementsByClassName("synopsis js-synopsis");
-                var animegenres = div.getElementsByClassName("genres-inner js-genre-inner");
-                var output = '<div class="container"><div class="row"><div class="col s12" id="search"><p><input id="searchInput" class="inputFocus" style="width: 100%" type="text" value="Search" /></p></div></div></div>';
-                for (var i = 0; i < animeimg.length; i++) {
-
-                    var style = animeimg[i].currentStyle || window.getComputedStyle(animeimg[i], false);
-                    var animecover = animeimg[i].getAttribute("style").match(/url\(["|']?([^"']*)["|']?\)/)[1];
-                    var animetitles = (animeimg[i].innerText || animeimg[i].textContent).trim();
-                    var animeLinkTag = animeimg[i].getElementsByClassName("link-image");
-                    var animeLink = (animeLinkTag[0].getAttribute("href")).trim();
-                    var synopsis = (animesynopsis[i].innerText || animesynopsis[i].textContent).trim();
-
-                    var synopsisParsed = synopsis.replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/gi, '').replace(/(\r\n|\n|\r)/gm, "<br>");
-
-                    var genresUnparsed = animegenres[i].innerText || animegenres[i].textContent;
-                    var genres = genresUnparsed.replace(/\s+/g,' ');
-                    var id = i;
-                    output = output + '<div class="hide-on-med-and-down selectionHover">\
-                                    <div class="card customCard" imgid="' + id + '"> \
-                                        <div class="card-image customCard-image">\
-                                            <img class="customCard-image" onclick="animeClicked(\'' + animeLink + '~' + animecover + '~' + animetitles + '~' + synopsisParsed + '~' + genres + '\')" src="' + animecover + '" />\
-                                            <span class="card-title alpha60 customCard-title">\
-                                                <h6>' + animetitles + '</h6>\
-                                            </span>\
-                                        </div>\
-                                      </div>\
-                                    </div>'
-                    +
-                                    '<div class="hide-on-large-only row valign-wrapper selectionHover" onclick="animeClicked(\'' + animeLink + '~' + animecover + '~' + animetitles + '~' + synopsisParsed + '~' + genres + '\')">\
-                                        <div class="col s12" style="margin-top: 2%;">\
-                                            <div class="col s3">\
-                                                <img class="mobileCustomImg" src="' + animecover + '" /> \
-                                            </div>\
-                                            <div class="col s9">\
-                                                <span>\
-                                                    <center><h5 class="valign center-align">' + animetitles + '</h6><hr>\
-                                                    ' + genres + '\
-                                               </center> </span>\
-                                           </div>\
-                                        </div>\
-                                        <hr>\
-                                    </div>';
-                }
-
-
+            //show currently downloading list
+            function onDlClick() {
                 $(document).ready(function () {
-                    onAnimeClick();
-                    $("#anime").html(output);
-                    $('#search').hide();
-                    $("#searchInput").keyup(function (event) {
-                        if (event.keyCode == 13) {
-                            var searchparam = $('#searchInput').val().replace(' ', '%20');
-                            var url = 'http://myanimelist.net/anime.php?q=' + searchparam;
-                            console.log("Searching url: " + url);
-                            setTimeout(getAndPrintSearchedAnime(url), 0);
-                        }
-                    });
-                    $("#searchInput").click(function (event) {
-                        $('#searchInput').val("");
-                    });
+                    lastPage = currentPage;
+                    currentPage = "DOWNLOADS";
+                    $("#videoplayer").hide();
+                    $("#dlpage").show();
+                    $("#chatwindow").hide();
+                    $("#anime").hide();
+                    $("#animedetail").hide();
+                    $("#loading").hide();
+
+                    $("#history").hide();
+                    $("#page").html("Downloads");
                 });
             }
-        });
-    }
 
-
-    function getAndPrintSearchedAnime(rawurl) {
-        setTimeout(showLoadScreen(), 0);
-        var url = "?url:" + rawurl;
-        $.ajax({
-            url: url, success: function (data) {
-                htmlMalSeason = data.replace(/(\r\n|\n|\r)/gm, "");
-                // then you can manipulate your text as you wish
-                var div = document.createElement('div');
-
-                div.innerHTML = htmlMalSeason;
-
-                var animeimg = div.getElementsByTagName("img");
-                var animesynopsis = div.getElementsByClassName("pt4");
-                var animelink = div.getElementsByClassName("hoverinfo_trigger");
-                
-                var output = '<div class="container"><div class="row"><div class="col s12"><p><input id="searchInput" class="inputFocus" style="width: 100%" type="text" value="Search" /></p></div></div></div>';
-                var animeimglength = animeimg.length;
-                for (var i = 0; i < animeimglength; i++) {
-
-                    var animecover = animeimg[i].getAttribute("src").trim().replace(/t([^t]*)$/,'$1');
-                    console.log(animecover);
-                    var animetitles = animeimg[i].getAttribute("alt").trim();
-                    console.log(animetitles);
-                    var animeLink = animelink[i].getAttribute("href").trim();
-
-
-                    var synopsis = "";
-                    try{
-                        synopsis = (animesynopsis[i].innerText || animesynopsis[i].textContent).trim();
-                    } catch(e) {
-                        synopsis = "unknown";
-                    }
-
-                    var synopsisParsed = synopsis.replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/gi, '').replace(/(\r\n|\n|\r)/gm, "<br>");
-                    var genres = "WIP";
-                    var id = i;
-                    output = output + '<div class="hide-on-med-and-down selectionHover">\
-                                    <div class="card customCard" imgid="' + id + '"> \
-                                        <div class="card-image customCard-image">\
-                                            <img class="customCard-image" onclick="animeClicked(\'' + animeLink + '~' + animecover + '~' + animetitles + '~' + synopsisParsed + '~' + genres + '\')" src="' + animecover + '" />\
-                                            <span class="card-title alpha60 customCard-title">\
-                                                <h6>' + animetitles + '</h6>\
-                                            </span>\
-                                        </div>\
-                                      </div>\
-                                    </div>'
-                    +
-                                    '<div class="hide-on-large-only row valign-wrapper selectionHover" onclick="animeClicked(\'' + animeLink + '~' + animecover + '~' + animetitles + '~' + synopsisParsed + '~' + genres + '\')">\
-                                        <div class="col s12" style="margin-top: 2%;">\
-                                            <div class="col s3">\
-                                                <img class="mobileCustomImg" src="' + animecover + '" /> \
-                                            </div>\
-                                            <div class="col s9">\
-                                                <span>\
-                                                    <center><h5 class="valign center-align">' + animetitles + '</h6><hr>\
-                                                    ' + genres + '\
-                                               </center> </span>\
-                                           </div>\
-                                        </div>\
-                                        <hr>\
-                                    </div>';
-                }
-
-
+            //opens chat page (normally not used often)
+            function onChatClick() {
                 $(document).ready(function () {
-                    onAnimeClick();
-                    $("#anime").html(output);
+                    lastPage = currentPage;
+                    currentPage = "CHAT";
+                    $("#videoplayer").hide();
+                    $("#chatwindow").show();
+                    $("#dlpage").hide();
+                    $("#anime").hide();
+                    $("#animedetail").hide();
+                    $("#loading").hide();
 
-                    $("#searchInput").keyup(function (event) {
-                        if (event.keyCode == 13) {
-                            var searchparam = $('#searchInput').val().replace(' ', '%20');
-                            var url = 'http://myanimelist.net/anime.php?q=' + searchparam;
-                            console.log("Searching url: " + url);
-                            setTimeout(getAndPrintAnime(url), 0);
-                        }
-                    });
-                    $("#searchInput").click(function (event) {
-                        $('#searchInput').val("");
-                    });
+                    $("#history").hide();
+                    $("#page").html("Chat");
                 });
             }
-        });
-    }
 
-    //prints more information about the anime(cover) you clicked
-    function animeClicked(animeInfo) {
-        lastPage = currentPage;
-        currentPage = "ANIMEDETAILS";
+            //opens page with anime covers (default page)
+            function onAnimeClick() {
 
-        var infoPage, cover, title, synopsis, genres;
-        try{
-            var seperateInfo = animeInfo.split('~');
-            infoPage = seperateInfo[0];
-            cover = seperateInfo[1];
-            title = seperateInfo[2];
-            synopsis = seperateInfo[3];
-            genres = seperateInfo[4];
-            currentAnime = animeInfo;
-
-            var synopsisParsed = synopsis.split("039").join('\'');
-            var synonyms = "";
-            if (storageAvailable('localStorage')) {
-                // Yippee! We can use localStorage awesomeness
-                if (localStorage.getItem(title) != null) {
-                    var synonymsJsonString = localStorage.getItem(title);
-                    var synonymsJson = JSON.parse(synonymsJsonString);
-                    $.each(synonymsJson, function (key, value) {
-                        synonyms = synonyms + ", " + value;
-                    });
-                    synonyms = synonyms.substring(2);
-                } else {
-                    synonyms = "None";
-                }
+                $(document).ready(function () {
+                    lastPage = currentPage;
+                    currentPage = "ANIMES";
+                    $("#videoplayer").hide();
+                    $("#anime").show();
+                    $("#chatwindow").hide();
+                    $("#dlpage").hide();
+                    $("#animedetail").hide();
+                    $("#loading").hide();
+                    $("#history").hide();
+                    $("#page").html("Anime");
+                });
             }
-            else {
-                // Too bad, no localStorage for us
-                synonyms = "Unable to load.";
-                Materialize.toast('Can\'t load your preferences :( ', 4000);
+
+            function showLoadScreen() {
+                $(document).ready(function () {
+                    $("#videoplayer").hide();
+                    $("#anime").hide();
+                    $("#chatwindow").hide();
+                    $("#dlpage").hide();
+                    $("#animedetail").hide();
+                    $("#history").hide();
+                    $("#loading").show();
+
+                    $("#page").html("Loading");
+                });
             }
-            console.log("anime clicked");
-            var output = '  <div class="row">\
-                            <div class="col s3 left">\
-                                <div class="section">\
-                                    <div class="card" href="' + infoPage + '" style="max-width: 225px; float: left;"> \
-                                        <div class="card-image hide-on-med-and-down" id="' + infoPage + '" onclick="animeClicked(' + infoPage + ', ' + cover + ', ' + title + ', ' + synopsisParsed + ', ' + genres + ')" style="height: 316px;">\
-                                            <img src="' + cover + '" /> <span class="card-title alpha60" style="width: 100%;">\
-                                            <h6>' + title + '</h6>\
-                                        </div>\
-                                        <div class="card-image mobileCustomImg hide-on-large-only" id="' + infoPage + '" onclick="animeClicked(' + infoPage + ', ' + cover + ', ' + title + ', ' + synopsisParsed + ', ' + genres + ')">\
-                                            <img src="' + cover + '" />\<span class="card-title custom-title alpha60" style="width: 100%;">\
-                                            <h6>' + title + '</h6>\
-                                        </div>\
-                                        <div class="card-action">\
-                                            <label for="genres">Genres:</label>\
-                                            <div id="genres" style="color: #4886ff; word-wrap: break-word;">' + genres + '</div>\
-                                        </div>\
-                                         <div class="card-action">\
-                                            <label class="left" for="allsynonyms">Synonyms:</label><span class="right"><a onclick="showAddInput()"><i class="material-icons" >add</i></a></span><br>\
-                                            <div id="showAddInput"> </div>\
-                                            <div id="allsynonyms" style="color: #4886ff; word-wrap: break-word;">' + synonyms + '</div>\
-                                        </div>\
-                                    </div>\
-                                </div>\
-                            </div>\
-                            <div class="col s9 right">\
-                                <div class="section">\
-                                    <h4> ' + title + ' </h4>\
-                                    <hr> ' + synopsisParsed + ' \
-                                </div>\
-                            </div>\
-                        </div>\
-                        <div class="divider"></div>\
-                        <div class="row">\
-                            <div class="input-field col s6">\
-                                        <select onchange="onBotChange()" id="botlist">\
-                                            <option value="" disabled selected>Choose your preffered Bot</option>\
-                                        </select>\
-                                    </div>\
-                            <div class="input-field col s6">\
-                                <select onchange="changeResolution()" id="resolutionSelected">\
-                                    <option value="1080">1080p</option>\
-                                    <option value="720" selected>720p</option>\
-                                    <option value="480">480p</option>\
-                                    <option value="none">Everything</option>\
-                                </select>\
-                            </div>\
-                        </div>\
-                        <div class="divider"></div>\
-                        <div class="row">\
-                            <div class="col s12">\
-                                <div class="section">\
-                                    <ul class="collapsible popout" id="episodes" data-collapsible="accordion"> </u>\
-                                </div>\
-                            </div>\
-                        </div>';
+            //get all anime covers from myanimelist url
 
-            $(document).ready(function () {
-                $("#animedetail").html(output);
-                $("#anime").hide();
-                $("#chatwindow").hide();
-                $("#dlpage").hide();
-                $("#animedetail").show();
-
-
-                $('select').material_select();
-                setTimeout(searchOnNibl(title, true), 0);
-
+            function onHistoryClick() {
+                lastPage = currentPage;
+                currentPage = "HISTORY";
+                console.log("history clicked");
+                //[{"Boku no Hero Academia" : [{"cover":"http://cdn.myanimelist.net/images/anime/10/78745.jpg", "synopsis":" The appearance of &quot;quirks,&quot; newly discovered super powers, has been steadily increasing over the years, with 80 percent of humanity possessing various abilities from manipulation of elements to shapeshifting. This leaves the remainder of the world completely powerless, and Izuku Midoriya is one such individual.<br /> <br />Since he was a child, the ambitious middle schooler has wanted nothing more than to be a hero. Izuku&#039;s unfair fate leaves him admiring heroes and taking notes on them whenever he can. But it seems that his persistence has borne some fruit: Izuku meets the number one hero and his personal idol, All Might. All Might&#039;s quirk is a unique ability that can be inherited, and he has chosen Izuku to be his successor!<br /><br />Enduring many months of grueling training, Izuku enrolls in UA High, a prestigious high school famous for its excellent hero training program, and this year&#039;s freshmen look especially promising. With his bizarre but talented classmates and the looming threat of a villainous organization, Izuku will soon learn what it really means to be a hero.<br /><br />[Written by MAL Rewrite] ", "genres":"Super Power", "score":"7.95"}]}]
                 if (storageAvailable('localStorage')) {
                     // Yippee! We can use localStorage awesomeness
-                    if (localStorage.getItem(currentAnime.split('~')[2]) != null) {
-                        var synonymsJsonString = localStorage.getItem(title);
-                        var synonymsJson = JSON.parse(synonymsJsonString);
-                        $.each(synonymsJson, function (key, value) {
-                            setTimeout(searchOnNibl(value, false), 0);
-                        });
-                    }
-                }
-            });
-
-
-        } catch (E) {
-            console.log("COULD NOT PARSE ANIME INFO");
-            Materialize.toast('Could not load anime information!', 4000);
-        }
-
-    }
-
-    //input for synonyms 
-    function showAddInput(animeid) {
-        var output = '<input id="add_synonym" class="inputFocus" type="text">\
-                      <label for="add_synonym">Synonym</label>';
-        $("#showAddInput").html(output);
-
-        $("#add_synonym").keyup(function (event) {
-            console.log("synonym adding");
-            if (event.keyCode == 13) {
-                var synonym = $('#add_synonym').val();
-                if (storageAvailable('localStorage')) {
-
-                    var synonyms = "";
-                    if (localStorage.getItem(currentAnime.split('~')[2]) == null) {
-                        localStorage.setItem(currentAnime.split('~')[2], '{"' + synonym + '":"' + synonym + '"}');
-                        synonyms = "None";
-                        var synonymsJsonString = localStorage.getItem(currentAnime.split('~')[2]);
-                        var synonymsJson = JSON.parse(synonymsJsonString);
-                        $.each(synonymsJson, function (key, value) {
-                            synonyms = synonyms + ", " + value;
-                        });
-                        synonyms = synonyms.substring(2);
+                    if (localStorage.getItem("history") != null || localStorage.getItem("history") != "") {
+                        var hystoryJson = '{"anime" : [{' + localStorage.getItem("history") + '}]}';
+                        var hystoryObj = JSON.parse(hystoryJson);
+                        console.log(hystoryObj.anime[0]);
+                        onHistoryClicked = true;
+                        setTimeout(printAnimeCovers(hystoryObj.anime[0], "history"), 0);
                     } else {
-                        var currentSynonyms = localStorage.getItem(currentAnime.split('~')[2]);
-                        var newSynonyms = currentSynonyms.Replace('}', ',') + '"' + synonym + '":"' + synonym + '"}';
-                        localStorage.setItem(currentAnime.split('~')[2], newSynonyms);
-
-
-                        var synonymsJsonString = localStorage.getItem(currentAnime.split('~')[2]);
-                        var synonymsJson = JSON.parse(synonymsJsonString);
-                        $.each(synonymsJson, function (key, value) {
-                            synonyms = synonyms + ", " + value;
-                            setTimeout(searchOnNibl(value, false), 0);
-                        });
-                        synonyms = synonyms.substring(4);
+                        $("#anime").html("<center> <h4> You have no history </h4></center>");
                     }
-                    Materialize.toast('Succesfully stored your synonym!', 4000);
-                    searchOnNibl(synonym, false);
                 }
-                else
-                {
+                else {
                     // Too bad, no localStorage for us
-                    Materialize.toast('Can\'t store your preferences :( ', 4000);
+                    Materialize.toast('Can\'t load history (LocalStorage not supported!) ', 4000);
                 }
-                console.log("CURRENT SYNONYMS:" + synonyms);
+
+
                 $(document).ready(function () {
-                    $('#allsynonyms').html(synonyms);
-                    $("#showAddInput").html("");
+                    $("#videoplayer").hide();
+                    $("#anime").hide();
+                    $("#chatwindow").hide();
+                    $("#dlpage").hide();
+                    $("#animedetail").hide();
+                    $("#loading").hide();
+                    $("#page").html("History");
+                    $("#history").show();
                 });
             }
-        });
-    }
 
-    //search nibl for anime
-    function searchOnNibl(title, replace) {
+            function onVideoPlayerClick() {
+                $(document).ready(function () {
+                    lastPage = currentPage;
+                    currentPage = "VIDEOPLAYER";
 
-        var searchQuery = title.trim().replace(/\s+/g, '+');
-        var url = "?url:http://nibl.co.uk/bots.php?search=" + searchQuery;
-        var htmlMalSeason = "";
-        console.log("searching url: " + url);
+                    $("#anime").hide();
+                    $("#chatwindow").hide();
+                    $("#dlpage").hide();
+                    $("#animedetail").hide();
+                    $("#loading").hide();
+                    $("#page").html("Video Player");
+                    $("#history").hide();
+                    $("#videoplayer").show();
+                });
+            }
 
 
 
-        $.ajax({
-            url: url, success: function (data) {
-                htmlMalSeason = data;
-                // then you can manipulate your text as you wish
-                var div = document.createElement('div');
+            //prints more information about the anime(cover) you clicked
+            function animeClicked(animeInfo) {
+                //[{"Boku no Hero Academia" : [{"cover":"http://cdn.myanimelist.net/images/anime/10/78745.jpg", "synopsis":" The appearance of &quot;quirks,&quot; newly discovered super powers, has been steadily increasing over the years, with 80 percent of humanity possessing various abilities from manipulation of elements to shapeshifting. This leaves the remainder of the world completely powerless, and Izuku Midoriya is one such individual.<br /> <br />Since he was a child, the ambitious middle schooler has wanted nothing more than to be a hero. Izuku&#039;s unfair fate leaves him admiring heroes and taking notes on them whenever he can. But it seems that his persistence has borne some fruit: Izuku meets the number one hero and his personal idol, All Might. All Might&#039;s quirk is a unique ability that can be inherited, and he has chosen Izuku to be his successor!<br /><br />Enduring many months of grueling training, Izuku enrolls in UA High, a prestigious high school famous for its excellent hero training program, and this year&#039;s freshmen look especially promising. With his bizarre but talented classmates and the looming threat of a villainous organization, Izuku will soon learn what it really means to be a hero.<br /><br />[Written by MAL Rewrite] ", "genres":"Super Power", "score":"7.95"}]}]
 
-                div.innerHTML = htmlMalSeason;
+                lastPage = currentPage;
+                currentPage = "ANIMEDETAILS";
 
-                var botnameall = div.getElementsByClassName("botname");
-                var packnumberall = div.getElementsByClassName("packnumber");
-                var filenameall = div.getElementsByClassName("filename");
+                var infoPage, cover, title, synopsis, genres;
+                try {
+                    var seperateInfo = animeInfo.split('~');
+                    infoPage = seperateInfo[0];
+                    cover = seperateInfo[1];
+                    title = seperateInfo[2];
+                    synopsis = seperateInfo[3];
+                    genres = seperateInfo[4];
+                    currentAnime = animeInfo;
 
-                var previousBot = "";
-                var jsonbots = "";
+                    //<li><a href="#" onclick=""><i class="material-icons left">movie</i> Currently Watching</a></li>
+                    $('#currentlyWatching').html('<li><a href="#" onclick="animeClicked(\'' + animeInfo + '\')"><i class="material-icons left">movie</i> Currently Watching</a></li>');
 
-                if (replace) {
-                    console.log("Think its time to create a json object with bots and episodes :I");
-                    var bots = "{ \"bots\": {";
-                    var botSpecific;
+                    var synopsisParsed = synopsis.split("039").join('\'');
+                    var synonyms = "";
+                    if (storageAvailable('localStorage')) {
+                        // Yippee! We can use localStorage awesomeness
+                        var history = "";
+                        if (localStorage.getItem("history") == null) {
+                            history = '"' + title + '" : [{"cover":"' + cover + '", "synopsis":"' + synopsisParsed + '", "genres":"' + genres + '", "score":"WIP"}]';
 
-                    for (var i = 0; i < filenameall.length; i++) {
-
-                        var botname = (botnameall[i].innerText || botnameall[i].textContent).trim().replace("[s]", "").trim();
-                        var packnumber = (packnumberall[i].innerText || packnumber[i].textContent).trim();
-                        var filename = (filenameall[i].innerText || filenameall[i].textContent).replace("[s]", "").replace("[get]", "").trim();
-                        var bot;
-                        if (previousBot == botname) {
-                            bots = bots + ",{\"filename\":\"" + filename + "\", \"packnumber\":\"" + packnumber + "\"}";
+                            localStorage.setItem("history", history);
                         } else {
-                            if (i == 0) {
-                                bots = bots + "\"" + botname + "\": [";
-                            } else {
-                                bots = bots + "],\"" + botname + "\": [";
+                            history = localStorage.getItem("history");
+                            history = history + ',"' + title + '" : [{"cover":"' + cover + '", "synopsis":"' + synopsisParsed + '", "genres":"' + genres + '", "score":"WIP"}]';
+                            localStorage.setItem("history", history);
+                        }
+                        if (localStorage.getItem(title) != null) {
+                            var synonymsJsonString = localStorage.getItem(title);
+                            var synonymsJson = JSON.parse(synonymsJsonString);
+                            $.each(synonymsJson, function (key, value) {
+                                synonyms = synonyms + ", " + value;
+                            });
+                            synonyms = synonyms.substring(2);
+                        } else {
+                            synonyms = "None";
+                        }
+                    }
+                    else {
+                        // Too bad, no localStorage for us
+                        synonyms = "Unable to load.";
+                        Materialize.toast('Can\'t load your preferences :( ', 4000);
+                    }
+                    console.log("anime clicked");
+                    var output = '  <div class="row">\
+                        <div class="col s3 left">\
+                            <div class="section">\
+                                <div class="card" href="' + infoPage + '" style="max-width: 225px; float: left;"> \
+                                    <div class="card-image hide-on-med-and-down" id="' + infoPage + '" onclick="animeClicked(' + infoPage + ', ' + cover + ', ' + title + ', ' + synopsisParsed + ', ' + genres + ')" style="height: 316px;">\
+                                        <img src="' + cover + '" /> <span class="card-title alpha60" style="width: 100%;">\
+                                        <h6>' + title + '</h6>\
+                                    </div>\
+                                    <div class="card-image mobileCustomImg hide-on-large-only" id="' + infoPage + '" onclick="animeClicked(' + infoPage + ', ' + cover + ', ' + title + ', ' + synopsisParsed + ', ' + genres + ')">\
+                                        <img src="' + cover + '" />\<span class="card-title custom-title alpha60" style="width: 100%;">\
+                                        <h6>' + title + '</h6>\
+                                    </div>\
+                                    <div class="card-action">\
+                                        <label for="genres">Genres:</label>\
+                                        <div id="genres" style="color: #4886ff; word-wrap: break-word;">' + genres + '</div>\
+                                    </div>\
+                                        <div class="card-action">\
+                                        <label class="left" for="allsynonyms">Synonyms:</label><span class="right"><a onclick="showAddInput()"><i class="material-icons" >add</i></a></span><br>\
+                                        <div id="showAddInput"> </div>\
+                                        <div id="allsynonyms" style="color: #4886ff; word-wrap: break-word;">' + synonyms + '</div>\
+                                    </div>\
+                                </div>\
+                            </div>\
+                        </div>\
+                        <div class="col s9 right">\
+                            <div class="section">\
+                                <h4> ' + title + ' </h4>\
+                                <hr> ' + synopsisParsed + ' \
+                            </div>\
+                        </div>\
+                    </div>\
+                    <div class="divider"></div>\
+                    <div class="row">\
+                        <div class="input-field col s6">\
+                                    <select onchange="onBotChange()" id="botlist">\
+                                        <option value="" disabled selected>Choose your preffered Bot</option>\
+                                    </select>\
+                                </div>\
+                        <div class="input-field col s6">\
+                            <select onchange="changeResolution()" id="resolutionSelected">\
+                                <option value="1080">1080p</option>\
+                                <option value="720" selected>720p</option>\
+                                <option value="480">480p</option>\
+                                <option value="none">Everything</option>\
+                            </select>\
+                        </div>\
+                    </div>\
+                    <div class="divider"></div>\
+                    <div class="row">\
+                        <div class="col s12">\
+                            <div class="section">\
+                                <ul class="collapsible popout" id="episodes" data-collapsible="accordion"> </u>\
+                            </div>\
+                        </div>\
+                    </div>';
+
+                    $(document).ready(function () {
+                        $("#animedetail").html(output);
+                        $("#anime").hide();
+                        $("#chatwindow").hide();
+                        $("#dlpage").hide();
+
+                        $("#history").hide();
+                        $("#animedetail").show();
+
+
+                        $('select').material_select();
+                        setTimeout(searchOnNibl(title, true), 0);
+
+                        if (storageAvailable('localStorage')) {
+                            // Yippee! We can use localStorage awesomeness
+                            if (localStorage.getItem(currentAnime.split('~')[2]) != null) {
+                                var synonymsJsonString = localStorage.getItem(title);
+                                var synonymsJson = JSON.parse(synonymsJsonString);
+                                $.each(synonymsJson, function (key, value) {
+                                    setTimeout(searchOnNibl(value, false), 0);
+                                });
                             }
-
-                            bots = bots + "{\"filename\":\"" + filename + "\", \"packnumber\":\"" + packnumber + "\"}";
                         }
+                    });
 
-                        previousBot = botname;
-                    }
-                    bots += "]}}";
-                    jsonbots = bots.replace(/(\r\n|\n|\r)/gm, "");
-                    try{
-                        animeEpisodes = JSON.parse(jsonbots);
-                        Materialize.toast('Episodes found for <br> ' + title + ' :)', 4000);
-                    } catch (e){
-                        animeEpisodes = JSON.parse("{}");
-                        Materialize.toast('No episodes found for <br> ' + title + ' :(', 4000);
-                    }
-                } else if (!replace) {
-                    try{
-                        console.log("will try to append instead of replacing :I");
-                        var currentbots = animeEpisodes;
-                        console.log(currentbots);
-                        for (var i = 0; i < filenameall.length; i++) {
-                            var botname = (botnameall[i].innerText || botnameall[i].textContent).trim().replace("[s]", "").trim();
-                            var packnumber = (packnumberall[i].innerText || packnumber[i].textContent).trim();
-                            var filename = (filenameall[i].innerText || filenameall[i].textContent).replace("[s]", "").replace("[get]", "").trim();
-                            var bot;
 
-                            currentbots.bots[botname][Object.keys(currentbots.bots[botname]).length].filename = filename;
-                            currentbots.bots[botname][Object.keys(currentbots.bots[botname]).length].packnumber = packnumber;
-                            previousBot = botname;
-                            console.log("APPEND TO JSON");
-                        }
-                        if(currenbots == animeEpisodes){
-                            Materialize.toast('No episodes found for <br> ' + title + ' :(', 4000);
-                            console.log(currentbots);
-                        } else {
-                            Materialize.toast('Episodes found for <br> ' + title + ' :)', 4000);
-                            animeEpisodes = currentbots;
-                            console.log(currentbots);
-                            console.log(animeEpisodes);
-                        }
+                } catch (E) {
+                    console.log("COULD NOT PARSE ANIME INFO");
+                    Materialize.toast('Could not load anime information!', 4000);
+                }
 
-                    } catch (e) {
-                        console.log("Cannot replace because there is nothing there to replace :I");
-                        var bots = "{ \"bots\": {";
-                        var botSpecific;
-                        for (var i = 0; i < filenameall.length; i++) {
+            }
 
-                            var botname = (botnameall[i].innerText || botnameall[i].textContent).trim().replace("[s]", "").trim();
-                            var packnumber = (packnumberall[i].innerText || packnumber[i].textContent).trim();
-                            var filename = (filenameall[i].innerText || filenameall[i].textContent).replace("[s]", "").replace("[get]", "").trim();
-                            var bot;
-                            if (previousBot == botname) {
-                                bots = bots + ",{\"filename\":\"" + filename + "\", \"packnumber\":\"" + packnumber + "\"}";
+            //input for synonyms
+            function showAddInput(animeid) {
+                var output = '<input id="add_synonym" class="inputFocus" type="text">\
+                    <label for="add_synonym">Synonym</label>';
+                $("#showAddInput").html(output);
+
+                $("#add_synonym").keyup(function (event) {
+                    console.log("synonym adding");
+                    if (event.keyCode == 13) {
+                        var synonym = $('#add_synonym').val();
+                        if (storageAvailable('localStorage')) {
+
+                            var synonyms = "";
+                            if (localStorage.getItem(currentAnime.split('~')[2]) == null) {
+                                localStorage.setItem(currentAnime.split('~')[2], '{"' + synonym + '":"' + synonym + '"}');
+                                synonyms = "None";
+                                var synonymsJsonString = localStorage.getItem(currentAnime.split('~')[2]);
+                                var synonymsJson = JSON.parse(synonymsJsonString);
+                                $.each(synonymsJson, function (key, value) {
+                                    synonyms = synonyms + ", " + value;
+                                });
+                                synonyms = synonyms.substring(2);
                             } else {
-                                if (i == 0) {
-                                    bots = bots + "\"" + botname + "\": [";
+                                var currentSynonyms = localStorage.getItem(currentAnime.split('~')[2]);
+                                var newSynonyms = currentSynonyms.Replace('}', ',') + '"' + synonym + '":"' + synonym + '"}';
+                                localStorage.setItem(currentAnime.split('~')[2], newSynonyms);
+
+
+                                var synonymsJsonString = localStorage.getItem(currentAnime.split('~')[2]);
+                                var synonymsJson = JSON.parse(synonymsJsonString);
+                                $.each(synonymsJson, function (key, value) {
+                                    synonyms = synonyms + ", " + value;
+                                    setTimeout(searchOnNibl(value, false), 0);
+                                });
+                                synonyms = synonyms.substring(4);
+                            }
+                            Materialize.toast('Succesfully stored your synonym!', 4000);
+                            searchOnNibl(synonym, false);
+                        }
+                        else {
+                            // Too bad, no localStorage for us
+                            Materialize.toast('Can\'t store your preferences :( ', 4000);
+                        }
+                        console.log("CURRENT SYNONYMS:" + synonyms);
+                        $(document).ready(function () {
+                            $('#allsynonyms').html(synonyms);
+                            $("#showAddInput").html("");
+                        });
+                    }
+                });
+            }
+
+            //search nibl for anime
+            function searchOnNibl(title, replace) {
+
+                var searchQuery = title.trim().replace(/\s+/g, '+');
+                var url = "?url:http://nibl.co.uk/bots.php?search=" + searchQuery;
+                var htmlMalSeason = "";
+                console.log("searching url: " + url);
+
+                $.ajax({
+                    url: url, success: function (data) {
+                        htmlMalSeason = data;
+                        // then you can manipulate your text as you wish
+                        var div = document.createElement('div');
+
+                        div.innerHTML = htmlMalSeason;
+
+                        var botnameall = div.getElementsByClassName("botname");
+                        var packnumberall = div.getElementsByClassName("packnumber");
+                        var filenameall = div.getElementsByClassName("filename");
+
+                        var previousBot = "";
+                        var jsonbots = "";
+
+                        if (replace) {
+                            console.log("Think its time to create a json object with bots and episodes :I");
+                            var bots = "{ \"bots\": {";
+                            var botSpecific;
+
+                            for (var i = 0; i < filenameall.length; i++) {
+
+                                var botname = (botnameall[i].innerText || botnameall[i].textContent).trim().replace("[s]", "").trim();
+                                var packnumber = (packnumberall[i].innerText || packnumber[i].textContent).trim();
+                                var filename = (filenameall[i].innerText || filenameall[i].textContent).replace("[s]", "").replace("[get]", "").trim();
+                                var bot;
+                                if (previousBot == botname) {
+                                    bots = bots + ",{\"filename\":\"" + filename + "\", \"packnumber\":\"" + packnumber + "\"}";
                                 } else {
-                                    bots = bots + "],\"" + botname + "\": [";
+                                    if (i == 0) {
+                                        bots = bots + "\"" + botname + "\": [";
+                                    } else {
+                                        bots = bots + "],\"" + botname + "\": [";
+                                    }
+
+                                    bots = bots + "{\"filename\":\"" + filename + "\", \"packnumber\":\"" + packnumber + "\"}";
                                 }
 
-                                bots = bots + "{\"filename\":\"" + filename + "\", \"packnumber\":\"" + packnumber + "\"}";
+                                previousBot = botname;
                             }
+                            bots += "]}}";
+                            jsonbots = bots.replace(/(\r\n|\n|\r)/gm, "");
+                            try {
+                                animeEpisodes = JSON.parse(jsonbots);
+                                Materialize.toast('Episodes found for <br> ' + title + ' :)', 4000);
+                            } catch (e) {
+                                animeEpisodes = JSON.parse("{}");
+                                Materialize.toast('No episodes found for <br> ' + title + ' :(', 4000);
+                            }
+                        } else if (!replace) {
+                            try {
+                                console.log("will try to append instead of replacing :I");
+                                var currentbots = animeEpisodes;
+                                console.log(currentbots);
+                                for (var i = 0; i < filenameall.length; i++) {
+                                    var botname = (botnameall[i].innerText || botnameall[i].textContent).trim().replace("[s]", "").trim();
+                                    var packnumber = (packnumberall[i].innerText || packnumber[i].textContent).trim();
+                                    var filename = (filenameall[i].innerText || filenameall[i].textContent).replace("[s]", "").replace("[get]", "").trim();
+                                    var bot;
 
-                            previousBot = botname;
+                                    currentbots.bots[botname][Object.keys(currentbots.bots[botname]).length].filename = filename;
+                                    currentbots.bots[botname][Object.keys(currentbots.bots[botname]).length].packnumber = packnumber;
+                                    previousBot = botname;
+                                    console.log("APPEND TO JSON");
+                                }
+                                if (currenbots == animeEpisodes) {
+                                    Materialize.toast('No episodes found for <br> ' + title + ' :(', 4000);
+                                    console.log(currentbots);
+                                } else {
+                                    Materialize.toast('Episodes found for <br> ' + title + ' :)', 4000);
+                                    animeEpisodes = currentbots;
+                                    console.log(currentbots);
+                                    console.log(animeEpisodes);
+                                }
+
+                            } catch (e) {
+                                console.log("Cannot replace because there is nothing there to replace :I");
+                                var bots = "{ \"bots\": {";
+                                var botSpecific;
+                                for (var i = 0; i < filenameall.length; i++) {
+
+                                    var botname = (botnameall[i].innerText || botnameall[i].textContent).trim().replace("[s]", "").trim();
+                                    var packnumber = (packnumberall[i].innerText || packnumber[i].textContent).trim();
+                                    var filename = (filenameall[i].innerText || filenameall[i].textContent).replace("[s]", "").replace("[get]", "").trim();
+                                    var bot;
+                                    if (previousBot == botname) {
+                                        bots = bots + ",{\"filename\":\"" + filename + "\", \"packnumber\":\"" + packnumber + "\"}";
+                                    } else {
+                                        if (i == 0) {
+                                            bots = bots + "\"" + botname + "\": [";
+                                        } else {
+                                            bots = bots + "],\"" + botname + "\": [";
+                                        }
+
+                                        bots = bots + "{\"filename\":\"" + filename + "\", \"packnumber\":\"" + packnumber + "\"}";
+                                    }
+
+                                    previousBot = botname;
+                                }
+                                bots += "]}}";
+                                jsonbots = bots.replace(/(\r\n|\n|\r)/gm, "");
+                                try {
+                                    animeEpisodes = JSON.parse(jsonbots);
+                                    Materialize.toast('Episodes found for <br> ' + title, 4000);
+                                } catch (e) {
+                                    animeEpisodes = JSON.parse("{}");
+                                    Materialize.toast('No episodes found for <br> ' + title + '<br> Try adding a synonym!', 4000);
+                                }
+                            }
                         }
-                        bots += "]}}";
-                        jsonbots = bots.replace(/(\r\n|\n|\r)/gm, "");
-                        try {
-                            animeEpisodes = JSON.parse(jsonbots);
-                            Materialize.toast('Episodes found for <br> ' + title , 4000);
-                        } catch (e) {
-                            animeEpisodes = JSON.parse("{}");
-                            Materialize.toast('No episodes found for <br> ' + title + '<br> Try adding a synonym!', 4000);
-                        }
-                    }
-                }
 
 
-                var eplist = "";
+                        var eplist = "";
 
 
-                var tempBotSelected = "";
-                var doesBotSelectedExist = false;
-                $.each(animeEpisodes.bots, function (key, value) {
-                    var output;
-                    if (key == botselected) {
-                        output = "<option value=" + key + " selected>" + key + "</option>";
+                        var tempBotSelected = "";
+                        var doesBotSelectedExist = false;
+                        $.each(animeEpisodes.bots, function (key, value) {
+                            var output;
+                            if (key == botselected) {
+                                output = "<option value=" + key + " selected>" + key + "</option>";
+                                if (!doesBotSelectedExist) {
+                                    doesBotSelectedExist = true;
+                                }
+                            } else {
+                                output = "<option value=" + key + ">" + key + "</option>";
+                                tempBotSelected = key;
+                            }
+                            $(document).ready(function () {
+                                $("#botlist").append(output);
+                            });
+                        });
+
                         if (!doesBotSelectedExist) {
-                            doesBotSelectedExist = true;
+                            botselected = tempBotSelected;
                         }
-                    } else {
-                        output = "<option value=" + key + ">" + key + "</option>";
-                        tempBotSelected = key;
+
+                        console.log(botselected);
+                        console.log(animeEpisodes.bots[botselected]);
+                        var jsonString = JSON.stringify(animeEpisodes.bots[botselected]);
+                        eplist = printDownloadListItem(jsonString);
+
+
+                        $(document).ready(function () {
+                            if (loggedin) {
+                                $("#episodes").html(eplist);
+                            } else {
+                                $("#episodes").html('<center><h4> You are not connected to an irc server! <br> Download disabled... ');
+                            }
+                            $('.collapsible').collapsible({
+                                accordion: false // A setting that changes the collapsible behavior to expandable instead of the default accordion style
+                            });
+                            $('select').material_select();
+                        });
                     }
-                    $(document).ready(function () {
-                        $("#botlist").append(output);
-                    });
-                });
-
-                if (!doesBotSelectedExist) {
-                    botselected = tempBotSelected;
-                }
-
-                console.log(botselected);
-                console.log(animeEpisodes.bots[botselected]);
-                var jsonString = JSON.stringify(animeEpisodes.bots[botselected]);
-                eplist = printDownloadListItem(jsonString);
-
-
-                $(document).ready(function () {
-                    if (loggedin) {
-                        $("#episodes").html(eplist);
-                    } else {
-                        $("#episodes").html('<center><h4> You are not connected to an irc server! <br> Download disabled... ');
-                    }
-                    $('.collapsible').collapsible({
-                        accordion: false // A setting that changes the collapsible behavior to expandable instead of the default accordion style
-                    });
-                    $('select').material_select();
                 });
             }
-        });
-    }
 
-    //when use selects another resolution
-    function changeResolution() {
-        resolution = document.getElementById('resolutionSelected').selectedOptions[0].value;
-        console.log(resolution);
-        var eplist = printDownloadListItem(JSON.stringify(animeEpisodes.bots[botselected]));
-        $("#episodes").html(eplist);
-    }
+            //when use selects another resolution
+            function changeResolution() {
+                resolution = document.getElementById('resolutionSelected').selectedOptions[0].value;
+                console.log(resolution);
+                var eplist = printDownloadListItem(JSON.stringify(animeEpisodes.bots[botselected]));
+                $("#episodes").html(eplist);
+            }
 
-    //when user selects a different bot
-    function onBotChange() {
-        botselected = document.getElementById('botlist').selectedOptions[0].text;
-        var eplist = printDownloadListItem(JSON.stringify(animeEpisodes.bots[botselected]));
-        $("#episodes").html(eplist);
-    }
+            //when user selects a different bot
+            function onBotChange() {
+                botselected = document.getElementById('botlist').selectedOptions[0].text;
+                var eplist = printDownloadListItem(JSON.stringify(animeEpisodes.bots[botselected]));
+                $("#episodes").html(eplist);
+            }
 
-    //prints xdcc file list
-    function printDownloadListItem(jsonToParse) {
-        var output = "";
-        var jsonparsed = JSON.parse(jsonToParse);
-        console.log(jsonparsed);
-        $.each(jsonparsed, function (key, value) {
-            if (value.filename.indexOf(resolution) > -1) {
-                output = output + '  <li> \
-                    <div class="collapsible-header truncate">\
-                        <i class="material-icons">cloud</i>\
-                        ' + value.filename + '\
-                    </div>\
-                    <div class="collapsible-body center">\
-                        <p id="' + value.packnumber + '">\
-                            <button  onclick="sendircmessage(\'/msg ' + botselected + ' xdcc send #' + value.packnumber + '\'); replaceWithCircular(' + value.packnumber + ');" class="waves-effect waves-light btn grey"><i class="material-icons right">file_download</i>Download</a>\
-                         </p>\
-                    </div>\
-                </li> </ul>';
-            } else if (resolution == "none") {
-                output = output + '  <li> \
-                    <div class="collapsible-header truncate">\
-                        <i class="material-icons">cloud</i>\
-                        ' + value.filename + '\
-                    </div>\
-                    <div class="collapsible-body center">\
-                        <p id="' + value.packnumber + '">\
-                            <button onclick="sendircmessage(\'/msg ' + botselected + ' xdcc send #' + value.packnumber + '\'); replaceWithCircular(\'' + value.packnumber + '\');" class="waves-effect waves-light btn grey"><i class="material-icons right">file_download</i>Download</a>\
+            //prints xdcc file list
+            function printDownloadListItem(jsonToParse) {
+                var output = "";
+                var jsonparsed = JSON.parse(jsonToParse);
+                console.log(jsonparsed);
+                $.each(jsonparsed, function (key, value) {
+                    if (value.filename.indexOf(resolution) > -1) {
+                        output = output + '  <li> \
+                <div class="collapsible-header truncate">\
+                    <i class="material-icons">cloud</i>\
+                    ' + value.filename + '\
+                </div>\
+                <div class="collapsible-body center">\
+                    <p id="' + value.packnumber + '">\
+                        <button  onclick="sendircmessage(\'/msg ' + botselected + ' xdcc send #' + value.packnumber + '\'); replaceWithCircular(' + value.packnumber + ');" class="waves-effect waves-light btn grey"><i class="material-icons right">file_download</i>Download</a>\
                         </p>\
-                    </div>\
-                </li> </ul>';
+                </div>\
+            </li> </ul>';
+                    } else if (resolution == "none") {
+                        output = output + '  <li> \
+                <div class="collapsible-header truncate">\
+                    <i class="material-icons">cloud</i>\
+                    ' + value.filename + '\
+                </div>\
+                <div class="collapsible-body center">\
+                    <p id="' + value.packnumber + '">\
+                        <button onclick="sendircmessage(\'/msg ' + botselected + ' xdcc send #' + value.packnumber + '\'); replaceWithCircular(\'' + value.packnumber + '\');" class="waves-effect waves-light btn grey"><i class="material-icons right">file_download</i>Download</a>\
+                    </p>\
+                </div>\
+            </li> </ul>';
+                    }
+                });
+
+                return output;
             }
-        });
 
-        return output;
-    }
-    
-    //print small circular loader
-    function printCircular() {
-        return '<div class="preloader-wrapper small active">\
-                    <div class="spinner-layer spinner-green-only">\
-                      <div class="circle-clipper left">\
-                        <div class="circle"></div>\
-                      </div><div class="gap-patch">\
-                        <div class="circle"></div>\
-                      </div><div class="circle-clipper right">\
-                        <div class="circle"></div>\
-                      </div>\
+            //print small circular loader
+            function printCircular() {
+                return '<div class="preloader-wrapper small active">\
+                <div class="spinner-layer spinner-green-only">\
+                    <div class="circle-clipper left">\
+                    <div class="circle"></div>\
+                    </div><div class="gap-patch">\
+                    <div class="circle"></div>\
+                    </div><div class="circle-clipper right">\
+                    <div class="circle"></div>\
                     </div>\
-                  </div>';
+                </div>\
+                </div>';
 
-        console.log("REPLACING WITH CIRCULAR :D");
-    }
+                console.log("REPLACING WITH CIRCULAR :D");
+            }
 
-    //replace id element with circular
-    function replaceWithCircular(id) {
-        console.log("REPLACING WITH CIRCULAR :D");
-        $("#" + id).html(printCircular());
-    }
-
-
-    if (!loggedin) {
-        setTimeout(getSettings(), 0);
-        Materialize.toast('Log into your IRC server!', 4000);
-        $('#modal1').openModal();
-    }
+            //replace id element with circular
+            function replaceWithCircular(id) {
+                console.log("REPLACING WITH CIRCULAR :D");
+                $("#" + id).html(printCircular());
+            }
 
 
+            if (!loggedin && isConnected) {
+                setTimeout(getSettings(), 0);
+                Materialize.toast('Log into your IRC server!', 4000);
+                $('#backendServer').closeModal();
+                $('#connectToIrc').openModal();
+                $('.lean-overlay').remove();
+            } else {
+                $('#backendServer').openModal();
 
-  
-   
-    </script>
+                $('.lean-overlay').remove();
+            }
+
+
+
+
+
+        </script>
 </body>
 </html>
