@@ -33,6 +33,11 @@ WeebIRC is a multiplatform anime watcher, using your browser for the interface, 
 #### [Showcase 1 - older version](https://www.youtube.com/watch?v=BFUbyjH4Ufg) 
 #### [Screenshots](https://github.com/RareAMV/WeebIRC/blob/master/SCREENSHOTS.md)
 
+### Trello - Track Progress
+
+I finally got time to work on this again, there is a somewhat big update comming up where I and partially a friend of mine are rewriting the whole interface to make the code more managable and stable, you can follow the progress on this trello, where I will provide weekly the plannings (ETA of the new update should be in ~3 weeks :D ).
+
+[Trello](https://trello.com/b/HZmrwqma/weebirc)
 
 ### Version
 - 2.1 - Initial Release
