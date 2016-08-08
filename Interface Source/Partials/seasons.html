@@ -1,0 +1,9 @@
+<div class="container1" ng-controller="seasonsCtrl">
+    <div style="min-width: 90%; margin-top: 20px;" >
+        <a class="btn waves-effect left" href="#/home" style="margin-left: 10px; margin-bottom: 10px; min-width: 200px;" ng-click="loadSeason('http://myanimelist.net/anime/season', 'Currently Airing')">Currently Airing</a>
+        <div ng-repeat="(key, value) in seasons track by $index">
+           <a class="btn waves-effect left" href="#/home" style="margin-left: 10px; margin-bottom: 10px; width: 200px;" ng-click="loadSeason(value.url, value.season)">{{value.season}}</a>
+        </div>
+    </div>
+</div>
+

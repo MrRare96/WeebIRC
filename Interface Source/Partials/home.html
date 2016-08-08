@@ -1,0 +1,26 @@
+<div class="container1" ng-controller="homeCtrl">
+    <div class="row hide-on-small-only">
+        <div class="col s12">
+            <div class="selectionHover" ng-repeat="(key, value) in animeOfThisSeason track by $index">
+                <div class="card customCard" imgid="{{value.id}}"> 
+                    <div class="card-image customCard-image">
+                        <img class="customCard-image" ng-click="animeClicked(value.id, value.cover, value.title, value.synopsis, value.genres)" src="{{value.cover}}" />
+                        <span class="card-title alpha60 customCard-title">
+                            <h6>{{value.title}}</h6>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- mobile -->
+    <div class="row hide-on-med-and-up" style="z-index: 0">
+         <div class="col s12" ng-repeat="(key, value) in animeOfThisSeason track by $index">
+             <div style="height: 140px;" class="valign-wrapper" ng-click="animeClicked(value.id, value.cover, value.title, value.synopsis, value.genres)" src="{{value.cover}}">
+                <img class="customCardMob-image left valign"  src="{{value.cover}}"/> <span class="valign" style="margin-left: 10px"><h5>{{value.title}}</h5></span>
+             </div>
+             <hr>
+        </div>
+    </div>
+</div>
+

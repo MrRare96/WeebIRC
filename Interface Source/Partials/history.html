@@ -1,0 +1,17 @@
+<div ng-controller="historyCtrl">
+    <div class="container1" >
+        <div class="col s12">
+            <div class="hide-on-med-and-down selectionHover" ng-repeat="(key, value) in animeHistory | filter : { animeId : '!!' }">
+                <div class="card customCard" imgid="{{value.animeId}}"> 
+                    <div class="card-image customCard-image">
+                        <img class="customCard-image" ng-click="animeClicked(value.animeId, value.animeCover, value.animeTitle, value.animeSynopsis, value.animeGenres)" src="{{value.animeCover}}" />
+                        <span class="card-title alpha60 customCard-title">
+                            <h6>{{value.animeTitle}}</h6>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <a class="btn-floating btn-large waves-effect waves-light red fixedCircularButton" ng-click="deleteHistory()"><i class="material-icons">delete</i></a>
+</div>

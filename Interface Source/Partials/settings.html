@@ -1,0 +1,142 @@
+<div class="container1" ng-controller="settingsCtrl" >
+    <div class="row">
+        <div class="col s12">
+            <h5> IRC Settings </h5>
+            <hr>
+        </div>
+        <div class="col s12">
+            <p><b></b>Connection Status:</b> {{ircClientConnectionStatus}} </p>
+            
+        </div>
+            <div class="col s2"><p>Server Address:</p></div><div class="col s10"><p><input class="server inputFocus"  ng-model="server" style="width: 100" type="text" /></p></div>
+        
+            <div class="col s2"><p>IRC Channels:</p></div><div class="col s10"><p><input class="channel inputFocus" ng-model="channels" style="width: 100%" type="text" /></p></div>
+       
+            <div class="col s2"><p>Username:</p></div><div class="col s9"><p><input class="username inputFocus" ng-model="username" style="width: 100%" type="text" /></p></div><div class="col s1"><p><button class="btn waves-effect waves-light" ng-click="generateUsername()"> Generate </button> </p></div>
+     
+        
+            <div class="col s2"><p><p></p> Auto Connect on Startup:</p> </p></div>
+            <div class="col s10">
+                <p> 
+                      <div class="switch">
+                        <label>
+                          Off
+                          <input type="checkbox" id="autoconnect" ng-model="autoConnect" ng-checked="autoConnect" class="autoconnectsw" ng-click="setAutoConnect()" />
+                          <span class="lever"></span>
+                          On
+                        </label>
+                      </div> 
+              
+                </p>
+            </div>
+        <div class="col s12">
+            <p>
+            <center> 
+                <button class="btn waves-effect waves-light" style="margin-right: 30px;" ng-click="saveAndReConnectIRC()"> Save and {{connectOrReconnect}} </button> <button class="btn waves-effect waves-light" style="margin-left: 30px;" ng-click="disconnectIRC()"> Disconnect </button>
+            </center>
+            </p>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col s12">
+            <p>
+                <h5>WeebIRC Server Settings </h5>
+                <hr>
+            </p>
+        
+        </div>
+         <div class="col s12">
+            <p>
+                <b>Connection Status:</b> {{serverConnectionStatus}}
+            </p>
+        </div>
+        
+        <div class="col s12">
+            <h6><b>Available Servers:</b></h6>
+            <p>
+                <div ng-repeat="(i, val) in servers track by $index" ng-if="val.ip.length > 0">
+                  <button class="btn waves-effect waves-light" id="server_{{i}}" style="width: 100%; margin-top: 10px;" ng-click="setAsDefaultServer(i,val.ip)"><i class="material-icons left">computer</i> WeebIRC Server at {{val.name}} ({{val.ip}})</button>
+              </div> 
+            </p>
+            
+        </div>
+        
+        <div class="col s2"><p>Server IP address:</p></div><div class="col s8"><p><input ng-keypress="saveAddressKey($event)" class="serveraddress inputFocus" ng-model="weebserveraddress" style="width: 100%" type="text" /></p></div><div class="col s2"> <button class="btn waves-effect waves-light" style="margin-left: 5px;" ng-click="saveAddressButton()"> Save </button> <button class="btn waves-effect waves-light" style="margin-right: 5px;" ng-click="resetAddress()"> Reset </button></div>
+        
+    
+    </div>
+    <hr>
+    <div class="row">
+        <div class="col s12">
+           <h5> General Settings </h5>
+            <hr> 
+        </div>
+        <div class="col s12">
+            <p>
+                <h6>Delete / Reset storage...</h6>
+            </p>
+             <p>
+                
+                    <button class="fixedButtonSize btn waves-effect waves-light" style="margin-right: 30px;" ng-click="deleteEverything()"> Delete Everything </button>
+              
+            </p>
+            <p ng-repeat="storage in allStorages track by $index" ng-if="storage != ''">
+                
+                    <button class="fixedButtonSize btn waves-effect waves-light" style="margin-right: 30px;" ng-click="deleteCertainStorage(storage)"> Delete {{storage}} </button>
+                
+            </p>
+        </div>
+        <div class="col s12">
+            <p>
+                <h6>Default Resolution:</h6>
+            </p>
+            <p>
+                
+                <button id="1080" class="fixedButtonSize btn waves-effect " style="margin-top: 20px;" ng-click="changeResolution('1080')">1080p</button>
+                <button id="720" class="fixedButtonSize btn waves-effect " style="margin-top: 20px;" ng-click="changeResolution('720')">720p</button>
+                <button id="480" class="fixedButtonSize btn waves-effect " style="margin-top: 20px;" ng-click="changeResolution('480')">480p</button>
+                <button id="unknown"class="fixedButtonSize btn waves-effect " style="margin-top: 20px;" ng-click="changeResolution('unknown')">Everything</button>
+            </p>
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        <div class="col s12">
+            <h5> Developer Debugging </h5>
+            <hr>
+        </div>
+        
+        <div class="col s12">
+            <p>
+                <h6>Console: </h6>
+                <br />
+                <div id="" style="overflow-y: scroll; height:400px;" >
+                    <div ng-repeat="(key, value) in debugmessages track by $index">
+                        {{key}} | {{value.view}} | {{value.message}}
+                        <br />
+                    </div>
+                </div>
+            </p>
+        </div>
+    </div>
+     <hr>
+    <div class="row">
+        <div class="col s12">
+            <h5> Data in Storage</h5>
+            <hr>
+        </div>
+        
+        <div ng-repeat="test in allDataPerStorageValues track by $index">
+            <hr />
+            <p>
+                <h6>Storage: <b>{{test.storage}}</b> </h6>
+                <div id="" style="overflow-y: scroll; height:400px;" >
+                    <pre>
+                    {{ test.storagevalue | json }}
+                    </pre>
+                </div>
+            </p>
+        </div>
+    </div>
+</div>

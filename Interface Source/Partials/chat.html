@@ -1,0 +1,14 @@
+<div ng-controller="chatCtrl">
+    <div class="container1">
+        <div class="row">
+            <div class="col s12">
+                <div id="" style="overflow-y: scroll; height: 90%;">
+                    <span ng-repeat="message in ircMessages track by $index"><pre>{{message}}</pre></span>
+                </div>
+                <br />
+                <input type="text" id="ircMessageInput" ng-model="ircMessageInput" ng-keypress="($event.charCode==13)?sendIrcMessage():return" style="width: 100%;" />
+            </div>
+        </div>
+    </div>
+   
+</div>

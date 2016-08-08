@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html ng-app="weebIrc" ng-controller="rootCtrl">
+
+<head>
+    <title>{{config.pageTitle}}</title>
+    <!--Let browser know website is optimized for mobile-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!--Import materialize.css-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.6/css/materialize.min.css">
+    <link rel="stylesheet" href="Css/style.css">
+    <link rel="stylesheet" href="Css/SubPlayerJS.css">
+    <!--Import Google Icon Font-->
+    <link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.6/js/materialize.min.js"></script>
+    
+    <!-- custom scripts -->
+    <script type="text/javascript" src="Javascript/SubPlayerJS.js" ></script>
+    <script type="text/javascript" src="Javascript/CSWebServerDetection.js" ></script>
+
+    <!-- AngularJS Scripts -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.7/angular.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.7/angular-route.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular-sanitize/1.5.7/angular-sanitize.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular-materialize/0.1.9/angular-materialize.min.js"></script>
+
+    <!-- Global App -->
+    <script type="text/javascript" src="Javascript/app.js"></script>
+    
+    <!-- Custom Controllers -->
+    <script type="text/javascript" src="Javascript/homeCtrl.js"></script>
+    <script type="text/javascript" src="Javascript/chatCtrl.js"></script>
+    <script type="text/javascript" src="Javascript/downloadCtrl.js"></script>
+    <script type="text/javascript" src="Javascript/seasonsCtrl.js"></script>
+    <script type="text/javascript" src="Javascript/animeCtrl.js"></script>
+    <script type="text/javascript" src="Javascript/historyCtrl.js"></script>
+    <script type="text/javascript" src="Javascript/playerCtrl.js"></script>
+    <script type="text/javascript" src="Javascript/settingsCtrl.js"></script>
+    <script type="text/javascript" src="Javascript/serverDownloadCtrl.js"></script>
+    <base href="/">
+</head>
+
+<body ng-cloak>
+
+    <nav class="{{config.navbarColor}}"  style="z-index: 10;">
+        
+        <div class="nav-wrapper" ng-show="!searching"  style="z-index: 10;">
+            <ul class="left" style="z-index: 10;">
+                <li style="z-index: 10;"><a href data-activates="side-nav" class="sidenav-activator" style="z-index: 10;"><img style="margin-top: 16px; z-index: 10;" src="Image/w5 blue.svg" width="64px"/></a></li>
+            </ul>
+            
+            <span class="brand-logo center hide-on-small-only">
+                {{config.navbarTitle}}
+            </span>
+            
+            <span class="brand-logo center hide-on-med-and-up">
+                <h5>{{config.navbarTitle}}</h5>
+            </span>
+            <ul id="nav-mobile" class="right">
+                <li><a href ng-click="searchButtonClicked()"><i class="material-icons">search</i></a></li>
+            </ul>
+        </div>
+        
+        <!-- Navbar when searchmode is active -->
+        <div class="nav-wrapper" ng-show="searching">
+            <form>
+                <div class="input-field">
+                    <input ng-keypress="startSearch($event)" ng-model="searchinput.text" id="search" type="search" required focus-me="searching">
+                    <label for="search"><i class="material-icons">search</i></label>
+                    <i ng-click="searchButtonClicked()" class="material-icons">close</i>
+                </div>
+            </form>
+        </div>
+        
+    </nav>
+    
+    <ul class="side-nav" id="side-nav" style="margin-top: 64px; z-index: 2;">
+        <li ng-repeat="menuitem in menuItems">
+            <a href="{{menuitem.url}}">
+                <i class="material-icons" style="vertical-align: middle;">{{menuitem.icon}}</i>
+                {{menuitem.text}}
+            </a>
+        </li>
+    </ul>
+    
+    
+    
+    <div id="firstLaunch" class="modal logo" style="min-height: 100%;">
+        <div class="modal-content" style="margin-top: 100px;">
+            <div class="slider" style="background-color: rgba(0,0,0,0); min-height: 700px">
+                <ul class="slides" style="min-height: 650px; background-color: rgba(255,255,255,0);  ">
+                  <li style="min-height: 650px;">
+                    <div class="caption center-align" >
+                        <div class="hide-on-small-only">
+                             <h3>Welcome to WeebIRC!</h3>
+                             <h5>In order to use this application, you need a backend server! This server is supposed to run locally.  <p>Get the server here:</p><a onclick="$('#firstLaunch').closeModal()" class="hide-on-small-only btn waves-effect waves-light text-blue" href="/#/serverdownload"> <h6>Download Page</h6></a> 
+                             </h5>
+                        </div>
+                        <div class="hide-on-med-and-up">
+                             <h5>Welcome to WeebIRC!</h5>
+                             <h6>In order to use this application, you need a backend server! This server is supposed to run locally.  <p>Get the server here:</p> <a onclick="$('#firstLaunch').closeModal()" class="hide-on-med-and-up btn waves-effect waves-light text-blue" href="/#/serverdownload"><h6>Download Page</h6></a> 
+                             </h6>
+                        </div>
+                     
+                         <br>
+                         <button class="btn waves-effect waves-light text-blue" style="width: 100%; margin-top: 50px;" onclick="$('.slider').slider('next');">Next (Be sure you have the server running!)</button>
+                    </div>
+                  </li>
+                  <li style="min-height: 650px;">
+                    <div class="caption left-align" >
+                      <div class="hide-on-small-only">
+                          <h3 style="float: right;">We are now searching for your server!</h3>
+                          <h5>We found the following: </h5>
+                      </div>
+                      <div class="hide-on-med-and-up">
+                          <h5>We are now searching for your server!</h5>
+                          <h6>We found the following: </h6>
+                      </div>
+                      <div ng-repeat="(i, val) in servers track by $index" ng-if="val.ip.length > 0">
+                          <button class="btn waves-effect waves-light {{val.color}}" id="server_{{i}}" style="width: 100%; margin-top: 10px;" ng-click="setAsDefaultServer(i,val.ip)"><i class="material-icons left text-blue">computer</i> WeebIRC Server at {{val.name}} ({{val.ip}})</button>
+                      </div> 
+                      <br />
+                      <h6 ng-bind-html="newVersion"></h6>
+                      <br />
+                       <label for="Channels">Custom IP</label>
+                       <input class="customIp inputFocus left" id="customIp" ng-model="customIp" style="width: 100%" type="text">
+                      <br />
+                      <button class="btn waves-effect waves-light text-blue" style="width: 100%; margin-top: 50px;" ng-click="checkIfCustomIpIsSet()">Next</button>
+                    </div>
+                  </li>
+                  <li style="min-height: 650px;">
+                    <div class="caption right-align" style="min-height: 600px;">
+                        <div class="row">
+                            <div class="hide-on-small-only">
+                               <h3>
+                                   <span>One last thing!</span></h3>
+                                
+                            </div>
+                        </div>
+                       
+                        <div class="hide-on-med-and-up">
+                            <h5>One last thing!</h5>
+                           
+                        </div>
+                        <br>
+                            <label for="server">Server</label> 
+                            <input class="server inputFocus" id="server" ng-model="server" style="width: 100%" type="text" ><br>
+                            
+                            <label for="Channels">Channels</label>
+                            <input class="channel inputFocus" id="Channels" ng-model="channels" style="width: 100%" type="text"><br>
+                            
+                            <label for="username">User Name</label>
+                            <input class="username inputFocus"  id="username" ng-model="username" style="width: 100%" type="text"><br>
+                            
+                            <br />
+                             <button class="btn waves-effect waves-light text-blue" style="width: 100%" ng-click="saveAndConnectIRC(); setFirstLaunchAsTrue();">Done!</button>
+                        
+                    </div>
+                  </li>
+                </ul>
+              </div>
+          </div>
+    </div>
+    
+    <!-- Modal Structure -->
+        <div id="connectToIrc" class="modal logo"style="min-height: 100%;">
+            <div class="modal-content" style="margin-top: 200px; margin-left: 100px; width: 80%; color: white;" >
+                <center>
+                <h4>IRC Setup</h4>
+                <p><h6>You will need to connect to a IRC Server in order to download/watch Anime. </h6></p>
+                </center>
+                <p>
+                    
+                    <label for="server">Server</label> 
+                    <input class="server inputFocus" id="server" ng-model="server" style="width: 100%" type="text" ><br />
+                    
+                    <label for="Channels">Channels</label>
+                    <input class="channel inputFocus" id="Channels" ng-model="channels" style="width: 100%" type="text"><br />
+                    
+                    <label for="username">User Name</label>
+                    <input class="username inputFocus"  id="username" ng-model="username" style="width: 100%" type="text"><br />
+                    
+                    <span class="left"> Auto Connect on Startup: </span>
+                    <div class="switch right">
+                        <form>
+                            <input type="checkbox" id="autoconnect" ng-model="autoConnect" class="autoconnectsw"/>
+                            <label for="autoconnect">Auto Connect</label>
+                        </form>
+                    </div>
+                </p>
+                <p><button class="btn waves-effect waves-light text-blue" style="width: 100%" ng-click="saveAndConnectIRC()">Save and Connect </button></p>
+                
+            </div>
+        </div>
+
+        <div id="ServerReset" class="modal logo">
+            <div class="modal-content">
+                <p>
+                    <h4><center>Do you want to reset the server?</center></h4><br />
+                     This option will restart the server. Be aware that this might cause issues while downloading/watching!
+                </p>
+
+            </div>
+            <div class="modal-footer">
+                <button ng-click="resetServer()" class="btn modal-action modal-close waves-effect waves-light left" style="width: 48%"> Yes  </button>
+                <button class="btn modal-action modal-close waves-effect waves-light right" style="width: 48%" > No.</button>
+            </div>
+        </div>
+        
+        <div style="z-index: {{showLoading}}; min-width: 100%; min-height: 100%;  position: absolute; background: rgba({{color}}, {{color}}, {{color}}, 0.8);">
+            <div class="container" >
+                <div class="row" ng-bind-html="loadingBar">
+                  
+                </div>
+                <div class="row">
+                    <center><p><div class="col s12" ng-bind-html="whatIsLoading"></div></p></center>  
+                </div>
+              
+            </div>
+        </div>
+
+    
+    <main class="container-fluid" style="z-index: -2" ng-view>
+    </main>
+    
+    
+    <script>
+        $(document).ready(function(){
+          $('.slider').slider({indicators: false, full_width: true, interval: 300000});
+          $('.slider').slider('pause');
+          $('.slider').slider('prev');
+          $('.slider').slider('next');
+        });
+    </script>
+    
+</body>
+
+</html>
