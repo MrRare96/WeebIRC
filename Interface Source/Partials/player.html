@@ -1,5 +1,39 @@
 <div class="container1" ng-controller="playerCtrl" >
     <center><h2>{{videoLoaded}}</h2>
-     <div id="player"></div>
+    <p>
+         <div id="player"></div>
+    </p>
+    <p>
+        <ul class="collapsible popout" id="directories" data-collapsible="accordion" >
+            <li ng-repeat="(key, value) in localFiles track by $index" ng-if="value.length > 0"> 
+                <div class="collapsible-header truncate center">
+                    <i class="material-icons"> folder </i>
+                    {{key}}
+                </div>
+                <div class="collapsible-body center">
+                  <ul class="collapsible popout" id="episodes" data-collapsible="accordion" >
+                      <li ng-repeat="(key2, value2) in value track by $index"> 
+                          <div class="collapsible-header truncate center">
+                              <i class="material-icons"> folder </i>
+                              {{value2.fileName}}
+                          </div>
+                          <div class="collapsible-body center" style="min-height: 60px">
+                                <button style="margin-top: 12px" id="strbutton_{{key}}_{{key2}}}" ng-click="sendPlayRequest(baseUrl + ':8081/' + key + '_' + value2.fileId + '/' + value2.fileName);" class="btn waves-effect waves-light" target="_blank" > Play </button> 
+                                <span style="width: 10px;"></span>
+                                <a style="margin-top: 12px" id="dlbutton_{{key}}_{{key2}}" class="btn waves-effect waves-light"  href="{{baseUrl}}:8081/{{key}}/{{value2.fileName}}"> Get File </a>
+                          </div>
+                      </li>    
+                  </ul>
+                  <script type="text/javascript">
+                    $(document).ready(function(){
+                      $('.collapsible').collapsible({
+                        accordion : false // A setting that changes the collapsible behavior to expandable instead of the default accordion style
+                      });
+                    });
+                  </script>
+                </div>
+            </li>    
+        </ul>
+    </p>
      </center>
 </div>

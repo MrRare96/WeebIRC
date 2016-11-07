@@ -1,10 +1,43 @@
-<div ng-controller="animeCtrl">
-    <div class="container1" >
-        <div class="col s12">
-            <div class="row">
-                <div class="col s3 left hide-on-small-only">
+ <div class="container1" >
+    <div class="col s12">
+        <div class="row">
+            <div class="col s3 left hide-on-small-only">
+                <div class="section">
+                    <div class="card" style="max-width: 225px; float: left;"> 
+                        <a href="{{animeUrl}}">
+                            <div class="card-image hide-on-med-and-down" id="{{animeId}}" style="height: 316px;">
+                                <img src="{{animeCover}}" /> <span class="card-title alpha60" style="width: 100%;">
+                                <h6>{{animeTitle}}</h6>
+                            </div>
+                            <div class="card-image mobileCustomImg hide-on-large-only" id="{{animeId}}">
+                                <img src="{{animeCover}}" /><span class="card-title custom-title alpha60" style="width: 100%;">
+                                <h6>{{animeTitle}}</h6>
+                            </div>
+                        </a>
+                        <div class="card-action">
+                            <label for="genres">Genres:</label>
+                            <div id="genres" style="color: #4886ff; word-wrap: break-word;">{{animeGenres}}</div>
+                        </div>
+                        <div class="card-action">
+                            <div id="showAddInput">
+                                <input id="add_synonym" class="inputFocus" ng-keypress="addSynonym($event)" ng-model="synonyminput.text" type="text">
+                                <label for="add_synonym">Synonym</label> 
+                            </div>
+                            <div id="allsynonyms" style="color: #4886ff; word-wrap: break-word;" ><div ng-repeat="synonym in animeSynonyms track by $index">{{synonym}}</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col s9 right hide-on-small-only">
+                <div class="section">
+                    <h4>{{animeTitle}}</h4>
+                    <hr>{{animeSynopsis}} 
+                </div>
+            </div>
+            <div class="col s12  hide-on-med-and-up">
+                <center>
                     <div class="section">
-                        <div class="card" style="max-width: 225px; float: left;"> 
+                        <div class="card" style="max-width: 225px;"> 
                             <a href="{{animeUrl}}">
                                 <div class="card-image hide-on-med-and-down" id="{{animeId}}" style="height: 316px;">
                                     <img src="{{animeCover}}" /> <span class="card-title alpha60" style="width: 100%;">
@@ -15,7 +48,7 @@
                                     <h6>{{animeTitle}}</h6>
                                 </div>
                             </a>
-                            <div class="card-action">
+                            <div class="card-action" >
                                 <label for="genres">Genres:</label>
                                 <div id="genres" style="color: #4886ff; word-wrap: break-word;">{{animeGenres}}</div>
                             </div>
@@ -28,89 +61,84 @@
                             </div>
                         </div>
                     </div>
+                </center>
+            </div>
+            <div class="col s12  hide-on-med-and-up">
+                <div class="section">
+                    <h4>{{animeTitle}}</h4>
+                    <hr>{{animeSynopsis}} 
                 </div>
-                <div class="col s9 right hide-on-small-only">
-                    <div class="section">
-                        <h4>{{animeTitle}}</h4>
-                        <hr>{{animeSynopsis}} 
-                    </div>
+            </div>
+        </div>
+        <div class="divider"></div>
+        <div class="row ">
+            <div class="col s12">
+                <label for="resolution">Resolution: </label>
+                <div class="section center" id="resolution">
+                    <button id="1080" class="btn waves-effect" style="margin-top: 20px;" ng-click="changeResolution('1080')">1080p</button>
+                    <button id="720" class="btn waves-effect" style="margin-top: 20px;" ng-click="changeResolution('720')">720p</button>
+                    <button id="480" class="btn waves-effect" style="margin-top: 20px;" ng-click="changeResolution('480')">480p</button>
+                    <button id="unknown" class="btn waves-effect" style="margin-top: 20px;" ng-click="changeResolution('unknown')">Everything</button>
                 </div>
-                <div class="col s12  hide-on-med-and-up">
-                    <center>
-                        <div class="section">
-                            <div class="card" style="max-width: 225px;"> 
-                                <a href="{{animeUrl}}">
-                                    <div class="card-image hide-on-med-and-down" id="{{animeId}}" style="height: 316px;">
-                                        <img src="{{animeCover}}" /> <span class="card-title alpha60" style="width: 100%;">
-                                        <h6>{{animeTitle}}</h6>
-                                    </div>
-                                    <div class="card-image mobileCustomImg hide-on-large-only" id="{{animeId}}">
-                                        <img src="{{animeCover}}" /><span class="card-title custom-title alpha60" style="width: 100%;">
-                                        <h6>{{animeTitle}}</h6>
-                                    </div>
-                                </a>
-                                <div class="card-action" >
-                                    <label for="genres">Genres:</label>
-                                    <div id="genres" style="color: #4886ff; word-wrap: break-word;">{{animeGenres}}</div>
-                                </div>
-                                <div class="card-action">
-                                    <div id="showAddInput">
-                                        <input id="add_synonym" class="inputFocus" ng-keypress="addSynonym($event)" ng-model="synonyminput.text" type="text">
-                                        <label for="add_synonym">Synonym</label> 
-                                    </div>
-                                    <div id="allsynonyms" style="color: #4886ff; word-wrap: break-word;" ><div ng-repeat="synonym in animeSynonyms track by $index">{{synonym}}</div></div>
-                                </div>
+            </div>
+        </div>
+        <div class="divider"></div>    
+            
+        <div class="row">
+            <div class="col s12">
+                <label for="source">Source: </label>
+                <div class="section center" id="source">
+                    <ul class="collapsible popout" id="bots" data-collapsible="accordion" >
+                        <li> 
+                            <div class="collapsible-header truncate center" id="botsclick">
+                                Bots (Current: {{currentbot.name}} (Amount of files: {{currentbot.amountoffiles}})
                             </div>
-                        </div>
-                    </center>
-                </div>
-                <div class="col s12  hide-on-med-and-up">
-                    <div class="section">
-                        <h4>{{animeTitle}}</h4>
-                        <hr>{{animeSynopsis}} 
-                    </div>
-                </div>
-            </div>
-            <div class="divider"></div>
-            <div class="row center">
-                <button id="1080" class="btn waves-effect" style="margin-top: 20px;" ng-click="changeResolution('1080')">1080p</button>
-                <button id="720" class="btn waves-effect" style="margin-top: 20px;" ng-click="changeResolution('720')">720p</button>
-                <button id="480" class="btn waves-effect" style="margin-top: 20px;" ng-click="changeResolution('480')">480p</button>
-                <button id="unknown" class="btn waves-effect" style="margin-top: 20px;" ng-click="changeResolution('unknown')">Everything</button>
-                
-                <select class="dropdown"  text="choose your source" ng-init="selectedBot = botlist[0].value.name" ng-model="selectedBot" ng-change="updateFileList()" material-select watch>
-                    <option ng-repeat="value in botlist track by $index" >{{value.name}} (Amount of files: {{value.amountoffiles}})</option>
-                </select>
-            </div>
-            <div class="divider"></div>
-            <div class="row">
-                <div class="col s12">
-                    <label for="localEpisodes">Already Downloaded: </label>
-                    <div class="section" id="localEpisodes">
-                        <ul class="collapsible popout" id="episodes" data-collapsible="accordion" ng-repeat="(key, value) in localFiles track by $index" >
-                          <li ng-repeat="(key2, value2) in value track by $index" ng-if="value2.fileId.indexOf(animeId) > -1"> 
-                              <div class="collapsible-header truncate center">
-                                  <i class="material-icons"> folder </i>
-                                  {{value2.fileName}}
-                              </div>
-                              <div class="collapsible-body center" style="min-height: 60px">
-                                    <button style="margin-top: 12px" id="strbutton_{{key}}_{{key2}}}" ng-click="startPlayStream(baseUrl + ':8081/' + key + '_' + value2.fileId + '/' + value2.fileName);" class="btn waves-effect waves-light" target="_blank" > Play </button> 
-                                    <span style="width: 10px;"></span>
-                                    <a style="margin-top: 12px" id="dlbutton_{{key}}_{{key2}}" class="btn waves-effect waves-light"  href="{{baseUrl}}:8081/{{key}}/{{value2.fileName}}"> Get File </a>
-                              </div>
-                          </li>    
-                        </ul>
-                    </div>
+                            <div class="collapsible-body center">
+                               <div ng-repeat="value in botlist track by $index">
+                                    <button ng-click="updateFileList($index)"style="width: 90%; margin-bottom: 5px; margin-top: 5px;" class="btn waves-effect">{{value.name}} (Amount of files: {{value.amountoffiles}})</button>
+                               </div>
+                            </div>
+                        </li> 
+                    </ul>
                 </div>
             </div>
-            <div class="divider"></div>
-            <div class="row">
-                <div class="col s12"> <center><h5>{{ircNotConnected}}</h5></center></div>
+        </div>   
+             
+            <!--
+            <select id="bots" class="dropdown"  text="choose your source" ng-init="selectedBot = botlist[0].value.name" ng-model="selectedBot" ng-change="updateFileList()" material-select watch>
+                <option ng-repeat="value in botlist track by $index" value="{{$index}}">{{value.name}} (Amount of files: {{value.amountoffiles}})</option>
+            </select>
+            -->
+        <div class="divider"></div>
+        <div class="row">
+            <div class="col s12">
+                <label for="localEpisodes">Already Downloaded: </label>
+                <div class="section" id="localEpisodes">
+                    <ul class="collapsible popout" id="episodes" data-collapsible="accordion" ng-repeat="(key, value) in localFiles track by $index" >
+                      <li ng-repeat="(key2, value2) in value track by $index" ng-if="value2.fileId.indexOf(animeId) > -1"> 
+                          <div class="collapsible-header truncate center">
+                              <i class="material-icons"> folder </i>
+                              {{value2.fileName}}
+                          </div>
+                          <div class="collapsible-body center" style="min-height: 60px">
+                                <button style="margin-top: 12px" id="strbutton_{{key}}_{{key2}}}" ng-click="startPlayStream(baseUrl + ':8081/' + key + '_' + value2.fileId + '/' + value2.fileName);" class="btn waves-effect waves-light" target="_blank" > Play </button> 
+                                <span style="width: 10px;"></span>
+                                <a style="margin-top: 12px" id="dlbutton_{{key}}_{{key2}}" class="btn waves-effect waves-light"  href="{{baseUrl}}:8081/{{key}}/{{value2.fileName}}"> Get File </a>
+                          </div>
+                      </li>    
+                    </ul>
+                </div>
             </div>
-            <div class="row">
-                <div class="col s12">
-                    <label for="listOfNiblresults"> Episodes: </label>
-                    <div class="section" id="listOfNiblresults">
+        </div>
+        <div class="divider"></div>
+        <div class="row">
+            <div class="col s12"> <center><h5>{{ircNotConnected}}</h5></center></div>
+        </div>
+        <div class="row">
+            <div class="col s12">
+                <label for="listOfNiblresults"> Episodes: </label>
+                <div class="section" id="listOfNiblresults">
+                    <p>
                         <ul class="collapsible popout" id="episodes" data-collapsible="accordion" >
                             <li  ng-repeat="(key, value) in niblSearchResults track by $index"> 
                                 <div class="collapsible-header truncate center">
@@ -118,15 +146,21 @@
                                     {{value.botname}} | {{value.filename}}
                                 </div>
                                 <div class="collapsible-body center">
-                                    <p id="{{value.packnumber}}">
+                                    <div id="{{value.packnumber}}" style=" margin-top: 15px; margin-bottom: 15px; ">
                                         <button ng-click="sendDownloadRequest(value.botname, value.packnumber)" class="waves-effect waves-light btn grey" style="margin-right: 10px;"><i class="material-icons right">file_download</i>Download</button>
                                         <button ng-click="sendPlayRequest(value.botname, value.packnumber, value.filename)" class="waves-effect waves-light btn grey"><i class="material-icons right">play_circle_outline</i>Play</button>
-                                    </p>
+                                        
+                                    </div>
+                                     <div id="placeForLoaderStream_{{value.packnumber}}" style="margin: 15px;"></div>
                                 </div>
                             </li> 
                         </ul>
-                    </div>
+                    </p>
                 </div>
+                
+                    <p>
+                        <div id="placeForLoader" class="center"></div>
+                    </p>
             </div>
         </div>
     </div>

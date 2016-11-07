@@ -1,6 +1,6 @@
-<div class="container1" ng-controller="homeCtrl">
+<div class="container1">
     <div class="row hide-on-small-only">
-        <div class="col s12">
+        <div class="col s12" id="#animeCovers1">
             <div class="selectionHover" ng-repeat="(key, value) in animeOfThisSeason track by $index">
                 <div class="card customCard" imgid="{{value.id}}"> 
                     <div class="card-image customCard-image">
@@ -15,12 +15,14 @@
     </div>
     <!-- mobile -->
     <div class="row hide-on-med-and-up" style="z-index: 0">
-         <div class="col s12" ng-repeat="(key, value) in animeOfThisSeason track by $index">
+         <div class="col s12" id="#animeCovers2" ng-repeat="(key, value) in animeOfThisSeason track by $index">
              <div style="height: 140px;" class="valign-wrapper" ng-click="animeClicked(value.id, value.cover, value.title, value.synopsis, value.genres)" src="{{value.cover}}">
                 <img class="customCardMob-image left valign"  src="{{value.cover}}"/> <span class="valign" style="margin-left: 10px"><h5>{{value.title}}</h5></span>
              </div>
              <hr>
         </div>
     </div>
+    
+    <div id="placeForLoader" class="absoluteCenter"></div>
 </div>
 

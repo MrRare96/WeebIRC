@@ -1,7 +1,9 @@
 
 app.controller('homeCtrl', ['$rootScope', '$scope', '$location', 'comServer', 'storage', function ($rootScope, $scope, $location, comServer, storage) {
     
-    
+ 
+    $scope.animeOfThisSeason = "";
+    $rootScope.insertLoader(128, "home", "#placeForLoader") ;
     //checks if storage for current_season exists, if not, create storage and set initial value to Currently Airing
     if(!storage.doesStorageExist('current_season')){
         storage.createStorage('current_season', "Currently Airing");
@@ -71,6 +73,7 @@ app.controller('homeCtrl', ['$rootScope', '$scope', '$location', 'comServer', 's
     } else {
         if(animeCurrentSeason.length > 10){
             $scope.animeOfThisSeason = animeCurrentSeason;
+            $rootScope.removeLoader("home");
         } else {
             if(currentSeason == "Currently Airing"){
                 comServer.sendMessage("CURRENTSEASON");
@@ -87,7 +90,7 @@ app.controller('homeCtrl', ['$rootScope', '$scope', '$location', 'comServer', 's
         $scope.animeOfThisSeason = args;
         animeCurrentSeason = args;
         storage.resetStorage('anime_of_current_season', args);
-        $scope.$emit('CloseLoading');
+        $rootScope.removeLoader("home");
     });
     
     //function for when a cover has been clicked, set storage for anime_info to its values and redirect to the anime vie

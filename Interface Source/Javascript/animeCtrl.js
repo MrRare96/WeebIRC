@@ -1,6 +1,8 @@
 app.controller('animeCtrl', ['$rootScope', '$scope',  '$location', '$sce', '$compile', 'comServer', 'storage', function ($rootScope, $scope, $location, $sce, $compile, comServer, storage) {
     
     
+    $rootScope.insertLoader(128, "anime", "#placeForLoader") ;
+    
     //this var is used to wait with starting the stream until > 5% has been downloaded
     var waitingForStream = false;
     
@@ -32,9 +34,6 @@ app.controller('animeCtrl', ['$rootScope', '$scope',  '$location', '$sce', '$com
         navbarTitle: animeInfo.animeTitle,
         navbarColor: 'blue'
     });
-    
-    //show the loading screen for retreiving episodes from Nibl
-    $scope.$emit('ShowLoading', '<span style="color: white;"><h5> Loading Nibl Search Results </h5></span>');
     
     //function to add synonyms to the synonyms storage by creating a seperate storage spot distinguised by the id of the anime
     //also loads the existing synonyms from the storage into a certains spot on the page
@@ -76,14 +75,15 @@ app.controller('animeCtrl', ['$rootScope', '$scope',  '$location', '$sce', '$com
     var allEpisodesFound = [];
     var synonyms = storage.retreiveFromStorage(animeInfo.animeId);
     var searchQuery = "~" + animeInfo.animeTitle;
-    comServer.sendMessage("SEARCHNIBL" + searchQuery);
+    
+    setTimeout(function(){ comServer.sendMessage("SEARCHNIBL" + searchQuery); }, 0);
+    
     if(synonyms != null){
         $scope.animeSynonyms = synonyms.split("~~");
         var allSynonyms = synonyms.split("~~");
         $.each(allSynonyms, function( i, val ) {
             searchQuery = "~" + val;
             comServer.sendMessage("SEARCHNIBL" + searchQuery);
-            $scope.$emit('ShowLoading', '<span style="color: white;"><h5> Loading Nibl Search for: ' + val + ' </h5></span>');
         });
     }
     var currentResolution = storage.retreiveFromStorage('default_resolution');
@@ -114,26 +114,29 @@ app.controller('animeCtrl', ['$rootScope', '$scope',  '$location', '$sce', '$com
             }
         });
         // allEpisodesFound.push(args);
+        $rootScope.removeLoader("anime");
         $scope.botlist = bots;
-        $scope.$emit('CloseLoading');
+        console.log(bots);
         $scope.niblSearchResults = bots[currentBotIndex].files[currentResolution];
-        
+        $("#bots").val("0");
+        $scope.currentBot = { name: bots[0].name , amountoffiles: bots[0].amountoffiles}; 
+      
     });
     
     
     
-    $scope.updateFileList = function(){
-        console.log("bot selected:");
-        $.each(bots, function(index, value){
-            if($scope.selectedBot.indexOf(value.name) > -1){
-                currentBotIndex = index;
-                return;
-            }
-        });
+    $scope.updateFileList = function(valueIndex){
+        try{
+            $('#botsclick').click();
+            $scope.niblSearchResults = bots[valueIndex].files[currentResolution];
+            console.log(valueIndex);
+            console.log(bots[valueIndex].files[currentResolution]);
+            $scope.currentBot = {name: bots[valueIndex].name , amountoffiles: bots[valueIndex].amountoffiles}; 
+        } catch (E){
+            console.log("Error on updating filelist:");
+            console.log(E);
+        }
         
-        $scope.niblSearchResults = bots[currentBotIndex].files[currentResolution];
-        console.log(currentBotIndex);
-        console.log(bots[currentBotIndex].files[currentResolution]);
     }
             
     
@@ -195,10 +198,11 @@ app.controller('animeCtrl', ['$rootScope', '$scope',  '$location', '$sce', '$com
     
     //will send a request to the server to create/change download directory for the anime about to be downloaded, will send irc command for xdcc download, set the waiting for stream variable to true
     $scope.sendPlayRequest = function(bot, packnumber, filename){
-        $scope.$emit('ShowLoading', '<span style="color: white;"><h5> Waiting for Buffer. </h5></span>');
         waitingForStream = true;
         comServer.sendMessage("SETDLDIR~" + animeInfo.animeTitle.replace(/[^\w\s]/gi, '').trim() + "_" + animeInfo.animeId.trim());
         comServer.sendMessage("irc: " + '/msg ' + bot + ' xdcc send #' + packnumber);
+        $('#' + packnumber).hide();
+        $rootScope.insertLoader(64, "waitingforstream", "#placeForLoaderStream_" + packnumber) ;
     }
     
     //will sstart playing the url immidiately
@@ -211,22 +215,16 @@ app.controller('animeCtrl', ['$rootScope', '$scope',  '$location', '$sce', '$com
     //listener that listens for server retreival messages that contains download updates, when progress exceeds 5%, it will set the storage for the streamurl to the currently downloading file and redirect to the stream page (media player)
     $rootScope.$on('CurrentDownloadUpdated', function (event, args) {
         console.log(args);
-        if(parseInt(args.downloadProgress) > 5 || args.downloadStatus == "COMPLETED"){
-            $scope.$emit('CloseLoading');
+        if(parseInt(args.downloadProgress) > 0 || args.downloadStatus == "COMPLETED"){
             if(waitingForStream){
-                
+                $rootScope.removeLoader("waitingforstream");
                 console.log("OPEN PLAYER");
                 storage.resetStorage('streamUrl', $scope.baseUrl + ':8081/' + animeInfo.animeTitle.replace(/[^\w\s]/gi, '') + "_" + animeInfo.animeId + '/' + args.fileName);
                   
                 waitingForStream = false;
                 window.location = "/#/player";
             }
-        } else if (args.downloadStatus == "FAILED" ){
-            $scope.$emit('CloseLoading');
-        } else {
-            $scope.$emit('ShowLoading', '<span style="color: white;"><h5> Waiting for Buffer. Buffer: ' + args.downloadProgress + '% </h5></span>');
         }
-        setTimeout($scope.$emit('CloseLoading'), 10000);
     });
     
     //will check if the current anime is already on the last added index of the history, and will append it to the history if its not.
@@ -237,16 +235,14 @@ app.controller('animeCtrl', ['$rootScope', '$scope',  '$location', '$sce', '$com
     }
     
     
-     //asking is client is running!
-     comServer.sendMessage("ISCLIENTRUNNING");
-    setInterval(function(){
-         if(storage.retreiveFromStorage('irc_connection')[0].connected){
-            $('.collapsible').collapsible();
-            $scope.ircNotConnected = "";
-        } else {
-            $scope.ircNotConnected = "Please connect to a IRC server by reloading the page or going to the settings page!";
-        }
-    }, 1000);
+    $rootScope.$on('ircConnected', function (event, args) {
+        $('.collapsible').collapsible();
+        $scope.ircNotConnected = "";
+    });
+    
+    $rootScope.$on('ircDisconnected', function(event, args){
+        $scope.ircNotConnected = "Please connect to a IRC server by reloading the page or going to the settings page!";
+    });
 
        
     

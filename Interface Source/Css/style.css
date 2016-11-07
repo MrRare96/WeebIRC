@@ -213,3 +213,15 @@
 nav{
     height: 64px;
 }
+
+
+.absoluteCenter{
+  bottom: 0;
+  height: 128px;
+  left: 0;
+  margin: auto;
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: 128px;
+}

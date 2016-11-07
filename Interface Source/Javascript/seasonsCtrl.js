@@ -44,7 +44,6 @@ app.controller('seasonsCtrl', ['$rootScope', '$scope', 'comServer', 'storage', f
     //when a seasons has been clicked, show loading screen  and set search storage to false and set the storage for season and url for its season, then redirect to home page.
     $scope.loadSeason = function(url, season) {
         console.log("URL FOR SEASON " + season + " IS " + url );
-         $scope.$emit('ShowLoading', '<span style="color: white;"><h5> Loading Season ' + season + ' </h5></span>');
         if(!storage.doesStorageExist('isSearched')){
             storage.createStorage('isSearched', {isSearched: false});
         } else {

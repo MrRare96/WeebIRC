@@ -13,6 +13,9 @@ app.controller('downloadCtrl', ['$rootScope', '$scope', '$location', 'comServer'
     //var used to check if download is happening 
     var isDownloading = false;
     
+    //var waiting for abort
+    var waitingForAbort = false;
+    
     //creates storage to contain variable to check if a download is running (can be accessed outside of this scope, to be used in the future)
     if(!storage.doesStorageExist('isDownloading')){
         storage.createStorage('isDownloading', {isDownloading : false});
@@ -38,22 +41,35 @@ app.controller('downloadCtrl', ['$rootScope', '$scope', '$location', 'comServer'
     //hide download card, when nothing is downloading
     $scope.dlVisible = "hidden";
     
+    //listen for server messages
+    $rootScope.$on('ServerMessageReceived', function (event, args) {
+        if(args.indexOf("ABORTED") > -1 && waitingForAbort){
+            waitingForAbort = false;
+            comServer.sendMessage("GETLOCALFILES");
+        } else if(waitingForAbort){
+            comServer.sendMessage("ABORTDOWNLOAD");
+        }
+    });
+    
+    
     //listener for download updates
     $rootScope.$on('CurrentDownloadUpdated', function (event, args) {
         console.log("CURRETN DOWNLOAD UPDATE:");
         console.log(args);
         if(args.downloadProgress < 100 && args.downloadStatus != "COMPLETED"){
             $scope.dlVisible = "visible"; 
-        } else if(args.downloadStatus == "ABORTED" || args.downloadProgress == "0"){
-            console.log('ABORTED');
-            $scope.dlVisible = "hidden"; 
-            storage.resetStorage('isDownloading', {isDownloading : false});
-        }  
-        else {
+        }  else {
             $scope.dlVisible = "hidden"; 
             storage.resetStorage('isDownloading', {isDownloading : false});
             comServer.sendMessage("GETLOCALFILES");
         }
+        if(args.downloadStatus == "ABORTED" || args.fileName == "NO DOWNLOAD"){
+            console.log('ABORTED');
+            $scope.dlVisible = "hidden"; 
+            storage.resetStorage('isDownloading', {isDownloading : false});
+            comServer.sendMessage("GETLOCALFILES");
+        }  
+       
         $scope.download = args;
         //set storage variable for currently downloading to true when its not true, and show toast message that download has started
         if(!storage.retreiveFromStorage('isDownloading')[0].isDownloading){
@@ -73,6 +89,8 @@ app.controller('downloadCtrl', ['$rootScope', '$scope', '$location', 'comServer'
     
     $scope.abortDownload = function(){
         comServer.sendMessage("ABORTDOWNLOAD");
+        $scope.dlVisible = "hidden"; 
+        waitingForAbort = true;
     }
     
     

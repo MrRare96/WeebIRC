@@ -119,11 +119,11 @@ namespace WeebIRCServerTray
 
             irc = new SimpleIRC();
 
-            webserver = new HttpServer(DebugCallbackMethod, HttpMessageReceived, port);
-            webserver.SetWebHomeDir(Directory.GetCurrentDirectory() + @"/Views");
+            webserver = new HttpServer(HttpMessageReceived, port);
+            webserver.SetWebHomeDir(Directory.GetCurrentDirectory() + @"/");
             webserver.SetFileDir(Directory.GetCurrentDirectory() + "/Downloads");
             webserver.SetDefaultPage("index.html");
-            streamserver = new HttpServer(DebugCallbackMethod, HttpMessageReceived, port + 1);
+            streamserver = new HttpServer(HttpMessageReceived, port + 1);
             streamserver.SetWebHomeDir(Directory.GetCurrentDirectory() + @"/Downloads");
             streamserver.SetFileDir(Directory.GetCurrentDirectory() + "/Downloads");
             streamserver.SetDefaultPage("index.html");

@@ -105,6 +105,7 @@ app.directive('dynamic', function ($compile) {
     }
   };
 });
+
 // COMMUNICATION SERVICE FOR WEEBIRC SERVER
 app.service('comServer', ['$rootScope', '$http', '$interval', '$location', 'storage', 'serverDetection', function ($rootScope, $http, $interval, $location, storage, serverDetection) {
     
@@ -152,25 +153,19 @@ app.service('comServer', ['$rootScope', '$http', '$interval', '$location', 'stor
         
         function failCallback(response){
             console.log("FAILED");
-            if(!failed){
-                setTimeout(function(){
-                    if(!failed){
-                        Materialize.toast("Lost Connection To WeebIRC Server", 4000);
-                        failed = true;
-                        
-                        storage.resetStorage('weebirc_server_connected', {isconnected: false});
-                    }
-                }, 5000);
-            }
+            failed = true;
         }
                
         function successCallback(data){
             
-            if(!storage.retreiveFromStorage('weebirc_server_connected')[0].isconnected || firstRun == true){
-                storage.resetStorage('weebirc_server_connected', {isconnected: true});
-                Materialize.toast("Connected to WeebIRC Server!", 4000);
-                firstRun = false;
+            if(storage.doesStorageExist('weebirc_server_connected')){
+                if(!storage.retreiveFromStorage('weebirc_server_connected')[0].isconnected || firstRun == true){
+                    storage.resetStorage('weebirc_server_connected', {isconnected: true});
+                    Materialize.toast("Connected to WeebIRC Server!", 4000);
+                    firstRun = false;
+                }
             }
+           
             
             failed = false;
             
@@ -224,6 +219,21 @@ app.service('comServer', ['$rootScope', '$http', '$interval', '$location', 'stor
     
     //run comserver method every second
      $interval(putThisInInterval, 500);
+     
+     var statusShown = false;
+     $interval(function(){
+         if(failed){
+             if(!statusShown){
+                 Materialize.toast("Lost Connection To WeebIRC Server", 4000);
+                 storage.resetStorage('weebirc_server_connected', {isconnected: false});
+                 $rootScope.$broadcast('NotConnected');
+                 statusShown = true;
+             }
+         } else {
+             $rootScope.$broadcast('Connected');
+             statusShown = false;
+         }
+     }, 2000);
 }]);   
 
 //SERVICE FOR DETECTING WEEB IRC SERVERS
@@ -450,6 +460,75 @@ app.service('storage', ['$rootScope', '$http', '$interval', '$location', functio
         return localStorage.getItem('CurrentSubStorages').split('~~');
     }
 }]);
+
+app.service('status', ['$rootScope', '$http', '$interval', '$location', 'comServer', 'storage', function ($rootScope, $http, $interval, $location, comServer, storage) {
+   
+   //ask for irc status every 5 seconds 
+    setInterval(function(){
+        comServer.sendMessage("ISCLIENTRUNNING");
+    }, 5000);
+   
+    //creates settings database, will generate settings if storage does not exist
+    if(!storage.doesStorageExist('settings')){
+        
+        //generate username
+        var text = "";
+        var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    
+        for( var i=0; i < 5; i++ ){
+            text += possible.charAt(Math.floor(Math.random() * possible.length));
+        }
+            
+        storage.createStorage('settings', {
+            autoConnect: false,
+            server: "irc.rizon.net",
+            channels: "#horriblesubs,#news,#nibl,#intel",
+            username: "WeebIRC_" + text
+        });
+        
+    }
+    
+    var settings = storage.retreiveFromStorage('settings')[0];
+    
+    var isRunning = false;
+    //listener to messages received from server, if not connected to irc server, when autoconnect has been set, will load information from settings storage and automatically requests server to connect to irc server of choice, otherwise open modal for irc settings
+    $rootScope.$on('ServerMessageReceived', function (event, args) {
+        if(args.indexOf("clientisnotrunning") > -1){
+            if(!isRunning){
+                Materialize.toast('Not connected to IRC Server!', 4000);
+                isRunning = true;
+                
+                if(!settings.autoConnect){
+                    var  firstLaunch = storage.retreiveFromStorage('firstlaunch');
+                    if(firstLaunch !== null){
+                        $('#connectToIrc').openModal();
+                    } else {
+                        console.log(firstLaunch);
+                    }
+                } else {
+                    var connectionString = "server: " + settings.server + " channel: " + settings.channels + ",#weebirc username: " + settings.username + " junk: this is junk";
+                    comServer.sendMessage(connectionString);
+                    comServer.sendMessage("ISCLIENTRUNNING");
+                    $('#connectToIrc').closeModal();
+                }
+            }
+            storage.resetStorage('irc_connection', {connected: false});
+           
+            $rootScope.$emit('ircDisconnected');
+        } else if(args.indexOf("clientisrunning") > -1 && isRunning){
+            storage.resetStorage('irc_connection', {connected: true});
+            if(isRunning){
+                setTimeout(Materialize.toast('Connected to IRC Server!', 4000), 500);
+            }
+            isRunning = false;
+            $('#connectToIrc').closeModal();
+            $rootScope.$emit('ircConnected');
+        } else if(args.indexOf("clientisrunning") > -1){
+            storage.resetStorage('irc_connection', {connected: true});
+            $rootScope.$emit('ircConnected');
+        }
+    });
+}]);
     
     
 // DIRECTIVES ================================================================ #
@@ -475,9 +554,23 @@ app.directive('focusMe', function($timeout, $parse) {
 });
 
 
+// GLOBAL FUNCTIONS  ======================================================== #
+
+app.run(function($rootScope) {
+    $rootScope.insertLoader = function(size, loaderID, idToAppendTo) {
+        $(idToAppendTo).append('<div id="loader_' + loaderID + '"><img src="Image/loading.svg" width="' + size + '" /></div>');
+        console.log("INSERTING LOADER");
+    };
+    
+    $rootScope.removeLoader = function(id){
+        $("#loader_" + id).remove();
+    };
+});
+
+
 // GLOBAL CONTROLLERS ======================================================== #
 
-app.controller('rootCtrl', ['$rootScope', '$scope', '$http', '$location', '$sce', 'comServer', 'storage', 'serverDetection', function ($rootScope, $scope, $http, $location,  $sce, comServer, storage, serverDetection) {
+app.controller('rootCtrl', ['$rootScope', '$scope', '$http', '$location', '$sce', 'comServer', 'storage', 'serverDetection', 'status', function ($rootScope, $scope, $http, $location,  $sce, comServer, storage, serverDetection, status) {
     
     //default page
     $scope.config = {
@@ -553,27 +646,27 @@ app.controller('rootCtrl', ['$rootScope', '$scope', '$http', '$location', '$sce'
         
             
         interval = setInterval(function(){
-            if(storage.retreiveFromStorage('server_ip').length > 1 && storage.retreiveFromStorage('server_ip') != null && storage.retreiveFromStorage('server_ip') !== undefined){
-                
-                var serversParsed = [];
-                $.each(storage.retreiveFromStorage('server_ip'), function(i, val){
-                    console.log(val.version);
-                    if(val.version != currentVersion && i > 0){
-                        console.log("version incorrect! " + i);
-                        var serverInfoToStore = {name: val.name + " Old Version (" + val.version + ")", ip: val.ip, color: "red" };
-                        serversParsed.push(serverInfoToStore);
-                        
-                    } else {
-                        var serverInfoToStore = {name: val.name, ip: val.ip, color: "text-blue" };
-                        serversParsed.push(serverInfoToStore);
+            if(storage.doesStorageExist('server_ip')){
+                 if(storage.retreiveFromStorage('server_ip').length > 1 && storage.retreiveFromStorage('server_ip') != null && storage.retreiveFromStorage('server_ip') !== undefined){
+                    
+                    var serversParsed = [];
+                    $.each(storage.retreiveFromStorage('server_ip'), function(i, val){
+                        if(val.version != currentVersion && i > 0){
+                            var serverInfoToStore = {name: val.name + " Old Version (" + val.version + ")", ip: val.ip, color: "red" };
+                            serversParsed.push(serverInfoToStore);
+                            
+                        } else {
+                            var serverInfoToStore = {name: val.name, ip: val.ip, color: "text-blue" };
+                            serversParsed.push(serverInfoToStore);
+                        }
+                    })
+                    if(JSON.stringify(serversParsed).indexOf('"color":"red"') > -1){
+                        $scope.newVersion = $sce.trustAsHtml("Your running an older version of WeebIRC! <br> Please download the newer version <a href=\"/FileDownload/WeebIRCServer.exe\">here</a> for the best experience!");
                     }
-                })
-                console.log(JSON.stringify(serversParsed));
-                if(JSON.stringify(serversParsed).indexOf('"color":"red"') > -1){
-                    $scope.newVersion = $sce.trustAsHtml("Your running an older version of WeebIRC! <br> Please download the newer version <a href=\"/FileDownload/WeebIRCServer.exe\">here</a> for the best experience!");
+                    $scope.servers = serversParsed;
                 }
-                $scope.servers = serversParsed;
             }
+           
         }, 2000);
            
         
@@ -645,31 +738,6 @@ app.controller('rootCtrl', ['$rootScope', '$scope', '$http', '$location', '$sce'
     $scope.channels = settings.channels;
     $scope.username = settings.username;
     $scope.autoConnect = settings.autoConnect;
-   
-
-    // PAGE EVENTS =========================================================== #
-    $scope.showLoading = '-10';
-    //shows loading screen
-    $scope.$on('ShowLoading', function (event, args) {
-        $scope.showLoading = '100';
-         $scope.color = '0';
-         console.log("loading html: " + args);
-         $scope.whatIsLoading = $sce.trustAsHtml(args);
-         $scope.loadingBar = $sce.trustAsHtml('<div class="progress" style="margin-top: 25%"><div class="indeterminate"></div></div>');
-         setTimeout(function(){
-            $scope.loadingBar = '';
-            $scope.showLoading = '-10000';
-            $scope.color = '255';
-         }, 10000);
-    });
-    
-    //closes loading screen
-    $scope.$on('CloseLoading', function () {
-        $scope.loadingBar = '';
-         $scope.whatIsLoading = '';
-        $scope.showLoading = '-10000';
-        $scope.color = '255';
-    });
     
     $scope.$on('changeConfig', function (event, args) {
         $scope.config = args;
@@ -795,49 +863,16 @@ app.controller('rootCtrl', ['$rootScope', '$scope', '$http', '$location', '$sce'
         
         var connectionString = "server: " + server + " channel: " + channels + ",#weebirc username: " + username + " junk: this is junk";
         comServer.sendMessage(connectionString);
+        $('#connectToIrc').closeModal();
         
-        comServer.sendMessage("ISCLIENTRUNNING");
+        comServer.sendMessage("CURRENTSEASON");
     }
     
     //THINGS THAT SHOULD RUN AT STARTUP ===================================== #
     
    
     
-    var isRunning = false;
-    //listener to messages received from server, if not connected to irc server, when autoconnect has been set, will load information from settings storage and automatically requests server to connect to irc server of choice, otherwise open modal for irc settings
-    $scope.$on('ServerMessageReceived', function (event, args) {
-        if(args.indexOf("clientisnotrunning") > -1){
-            if(!isRunning){
-                Materialize.toast('Not connected to IRC Server!', 4000);
-                isRunning = true;
-                
-                if(!settings.autoConnect){
-                    if(!storage.doesStorageExist('firstlaunch')){
-                        $('#connectToIrc').openModal();
-                    }
-                } else {
-                    var connectionString = "server: " + settings.server + " channel: " + settings.channels + ",#weebirc username: " + settings.username + " junk: this is junk";
-                    comServer.sendMessage(connectionString);
-                    comServer.sendMessage("ISCLIENTRUNNING");
-                    $scope.$emit('CloseLoading');
-                    $('#connectToIrc').closeModal();
-                }
-            }
-            storage.resetStorage('irc_connection', {connected: false});
-           
-            $scope.$emit('ircDisconnected');
-        } else if(args.indexOf("clientisrunning") > -1 && !isRunning){
-            storage.resetStorage('irc_connection', {connected: true});
-            isRunning = true;
-            if(!isRunning){
-                setTimeout(Materialize.toast('Connected to IRC Server!', 4000), 500);
-                isRunning = true;
-            }
-             $scope.$emit('CloseLoading');
-            $('#connectToIrc').closeModal();
-            $scope.$emit('ircConnected');
-        }
-    });
+   
     //upate local files in storage
     comServer.sendMessage("GETLOCALFILES");
     $rootScope.$on('LocalFiles', function (event, args) {

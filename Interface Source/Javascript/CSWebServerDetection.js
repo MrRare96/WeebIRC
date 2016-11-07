@@ -72,6 +72,8 @@ function ClientSideServerDetection  (){
 
 	//callback function for when the local ip has been retreived
 	this.gotIp = function (ip, runAjaxFunction){
+		 console.log("IP RETURNED 2");
+	            console.log(ip);
 		var ipParts = ip.split('.');
 		baseIp = "";
 		for(var x = 0; x < 3; x++){
@@ -110,9 +112,18 @@ function ClientSideServerDetection  (){
 
 	    function handleCandidate(candidate){
 	        //match just the IP address
-	        var ip_regex = /([0-9]{1,3}(\.[0-9]{1,3}){3}|[a-f0-9]{1,4}(:[a-f0-9]{1,4}){7})/
-	        var ip_addr = ip_regex.exec(candidate)[1];
-	        return ip_addr;
+	        try{
+	        	var ip_regex = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/;
+	        	console.log("CANDIDATE:");
+		        console.log(candidate);
+		        var ip_addr = candidate.match(ip_regex)[0];
+		        console.log("IP:");
+		        console.log(ip_addr);
+		        return ip_addr;
+	        } catch (E){
+	        	return false;
+	        }
+	       
 	    }
 
 
@@ -121,12 +132,12 @@ function ClientSideServerDetection  (){
 	        //skip non-candidate events
 	        if(ice.candidate && !localIpReturned){
 	            var ip = handleCandidate(ice.candidate.candidate);
+	            console.log("IP RETURNED");
+	            console.log(ip);
 	            arrayWithIps.push(ip);
 	            //call callback and return ip, which is in most cases local ip
-	            if(arrayWithIps.length > 1){
 	            	callback(arrayWithIps[0], runAjaxFunction);
 	            	localIpReturned = true;
-	            }
 	        }
 	    };
 

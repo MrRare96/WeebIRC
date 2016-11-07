@@ -6,31 +6,27 @@ app.controller('settingsCtrl', ['$rootScope', '$scope', '$location', 'comServer'
         navbarColor: 'green'
     });
     
-    comServer.sendMessage("ISCLIENTRUNNING");
     updateStoragePrinter();
-    checkWeebIRCServerConnection();
-    //irc client status
-    var askedOnce = false;
-    $scope.$on('ServerMessageReceived', function (event, args) {
-        if(args.indexOf("clientisnotrunning") > -1){
-           $scope.ircClientConnectionStatus = "Not Connected";
-           $scope.connectOrReconnect = "Connect";
-           $scope.$emit('ircDisconnected');
-           if(!askedOnce){
-                if(!storage.retreiveFromStorage('firstlaunch')[0].firstlaunch){
-                    $('#connectToIrc').openModal();
-                }
-           }
-            
-           askedOnce = true;
-           storage.resetStorage('irc_connection', {connected: false});
-        } else if(args.indexOf("clientisrunning") > -1){
-           $scope.ircClientConnectionStatus = "Connected";
-           $scope.connectOrReconnect = "Reconnect";
-           storage.resetStorage('irc_connection', {connected: true});
-           $scope.$emit('ircConnected');
-           $scope.$emit('CloseLoading');
-        }
+    
+    
+    $rootScope.$on('ircConnected', function (event, args) {
+        $scope.ircClientConnectionStatus = "Connected";
+        $scope.connectOrReconnect = "Reconnect";
+        storage.resetStorage('irc_connection', {connected: true});
+    });
+    
+    $rootScope.$on('ircDisconnected', function(event, args){
+        $scope.ircClientConnectionStatus = "Not Connected";
+        $scope.connectOrReconnect = "Connect";
+        storage.resetStorage('irc_connection', {connected: false});
+    });
+    
+    $rootScope.$on('Connected', function (event, args) {
+        $scope.serverConnectionStatus = "Connected";
+    });
+    
+    $rootScope.$on('NotConnected', function(event, args){
+        $scope.serverConnectionStatus = "Not Connected";
     });
     
     var settings = storage.retreiveFromStorage('settings')[0];
@@ -110,16 +106,6 @@ app.controller('settingsCtrl', ['$rootScope', '$scope', '$location', 'comServer'
     
     
     $scope.weebserveraddress = storage.retreiveFromStorage('weebirc_server_address');
-    function checkWeebIRCServerConnection(){
-        
-        comServer.sendMessage("ISCLIENTRUNNING");
-        var connected = storage.retreiveFromStorage('weebirc_server_connected')[0].isconnected;
-        if(connected){
-            $scope.serverConnectionStatus = "Connected!";
-        } else {
-            $scope.serverConnectionStatus = "Not Connected!";
-        }
-    }
     
     
     $scope.saveAddressKey = function(event){
@@ -230,11 +216,10 @@ app.controller('settingsCtrl', ['$rootScope', '$scope', '$location', 'comServer'
     
     //update those things
      setInterval(function(){
-         comServer.sendMessage("ISCLIENTRUNNING");
+        
         updateStoragePrinter();
-        checkWeebIRCServerConnection();
         $scope.debugmessages = storage.retreiveFromStorage('debug_messages').reverse();
-     }, 10000);
+     }, 2000);
    
     setTimeout(function(){
          serverDetection.detectServers();

@@ -6,7 +6,7 @@
     <hr>
     
     <ul class="collapsible popout" id="directories" data-collapsible="accordion" >
-        <li ng-repeat="(key, value) in localFiles track by $index"> 
+        <li ng-repeat="(key, value) in localFiles track by $index" ng-if="value.length > 0"> 
             <div class="collapsible-header truncate center">
                 <i class="material-icons"> folder </i>
                 {{key}}
