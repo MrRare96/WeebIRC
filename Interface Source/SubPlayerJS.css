@@ -1,0 +1,35 @@
+
+.inner-container-SPJS {
+    display: inline-block;
+    position: relative;
+}
+.video-overlay-SPJS {    
+    text-align: center;
+    z-index: 1;
+    position: absolute;
+    width: 100%;
+    left: 0px;
+    top: 80%;
+    padding: 5px 5px;
+    color: white;
+    text-shadow:
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000;
+    font-size: 24pt;
+    font-size: 1.7vw;
+    font-family: Helvetica;
+}
+.control-SPJS {
+    text-align: center;
+    z-index: 1;
+    position: absolute;
+    width: 100%;
+    left: 0px;
+    top: 85%;
+    padding: 5px 5px;
+    background-color: rgb(0,0,0,0.5);
+    color: white;
+    font-size: 24pt;
+}

@@ -64,6 +64,16 @@
         
         <div class="col s2"><p>Server IP address:</p></div><div class="col s8"><p><input ng-keypress="saveAddressKey($event)" class="serveraddress inputFocus" ng-model="weebserveraddress" style="width: 100%" type="text" /></p></div><div class="col s2"> <button class="btn waves-effect waves-light" style="margin-left: 5px;" ng-click="saveAddressButton()"> Save </button> <button class="btn waves-effect waves-light" style="margin-right: 5px;" ng-click="resetAddress()"> Reset </button></div>
         
+
+        <div class="col s12">
+            <h6><b>Download Directory</b></h6>
+            <p>
+                <label for="Directory">Directory</label> 
+                <input class="Directory inputFocus" id="Directory" ng-model="Directory" style="width: 85%" type="text" >
+                <button class="btn waves-effect waves-light text-blue" style="width: 10%;" ng-click="setCustomDlDir()">Save</button>
+            </p>
+            
+        </div>
     
     </div>
     <hr>

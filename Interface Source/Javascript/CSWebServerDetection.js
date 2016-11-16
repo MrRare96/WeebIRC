@@ -27,6 +27,7 @@ function ClientSideServerDetection  (){
     var timeout = 2000;
     var baseIp = "0.0.0";
     var newServerFound = false;
+    var localIp = "0.0.0.0";
     var callbackToRun = function(){return;};
 
     //some setters
@@ -54,17 +55,23 @@ function ClientSideServerDetection  (){
     	baseIp = baseipInput;
     }
 
+    this.getFullLocalIp = function(){
+    	return localIp;
+    }
+
 	//starts the procedure to locate and retreive the responding servers on a local network
 	this.runDetection = function(callback){
 		serversFound = [];
 		callbackToRun = callback;
 		//you can only retreive your local ip once, to make it run more often without pager refresh i had to store the base ip.
 		if(baseIp != "0.0.0"){
+			console.log("CSWebServerDetection: starting detection with baseip: " + baseIp);
 			this.runAjaxRequests(baseIp, searchingServers, portsToCheck, partials, startAddress, endAddress, timeout, serversFound);
 			function searchingServers(servers){
 				callbackToRun (servers);
 			}
 		} else {
+			console.log("CSWebServerDetection: retreiving base ip");
 			this.getLocalIp(this.gotIp, this.runAjaxRequests);				
 		}
 				
@@ -80,6 +87,8 @@ function ClientSideServerDetection  (){
 			baseIp =  baseIp + ipParts[x] + ".";
 		}
 		baseIp = baseIp.substr(0, baseIp.length - 1);
+
+		console.log("CSWebServerDetection: starting detection with baseip: " + baseIp);
 		runAjaxFunction(baseIp, searchingServers, portsToCheck, partials, startAddress, endAddress, timeout, serversFound);
 		function searchingServers(servers){
 			callbackToRun (servers);
@@ -92,6 +101,7 @@ function ClientSideServerDetection  (){
 	//local ip detection done by WebRTC stun request, only available on chrome,firefox, opera, android & iOS.
 	//example used: https://github.com/diafygi/webrtc-ips
 	this.getLocalIp = function(callback, runAjaxFunction){
+		console.log("CSWebServerDetection: running retreival for base ip");
 		//contains every ip found
 		var arrayWithIps = [];
 	    //compatibility for firefox and chrome
@@ -119,6 +129,7 @@ function ClientSideServerDetection  (){
 		        var ip_addr = candidate.match(ip_regex)[0];
 		        console.log("IP:");
 		        console.log(ip_addr);
+
 		        return ip_addr;
 	        } catch (E){
 	        	return false;
@@ -134,10 +145,11 @@ function ClientSideServerDetection  (){
 	            var ip = handleCandidate(ice.candidate.candidate);
 	            console.log("IP RETURNED");
 	            console.log(ip);
-	            arrayWithIps.push(ip);
+	            //arrayWithIps.push(ip);
 	            //call callback and return ip, which is in most cases local ip
-	            	callback(arrayWithIps[0], runAjaxFunction);
-	            	localIpReturned = true;
+            	localIp = ip;
+            	localIpReturned = true;
+            	callback(ip, runAjaxFunction);
 	        }
 	    };
 
@@ -165,6 +177,7 @@ function ClientSideServerDetection  (){
 	//run the ajax calls for every port, ip between default 1 - 254, or your specific range, and for every partial, you can also make it detect servers which return error response, but it will always exlcude servers which timeout (basically are unreachable, errors mean that the server IS reachable)
 	this.runAjaxRequests = function(baseIp, callback, portsToCheck, partials, startAddress, endAddress, timeout, serversFound){		
 		//async ajax requests, you can specify timeout and such, be aware that checking multiple ports significantly increases waiting time
+		console.log("CSWebServerDetection: running ajax request");
 		function ajaxRequest(ip, port, partial, timetotimeout, serversFound){
 
 			$.when( $.ajax({url: 'http://'+ ip + ":" + port + partial, timeout: timetotimeout})).then(function( data, textStatus, jqXHR) {

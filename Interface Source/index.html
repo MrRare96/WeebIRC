@@ -24,10 +24,21 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.7/angular-route.min.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular-sanitize/1.5.7/angular-sanitize.min.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular-materialize/0.1.9/angular-materialize.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular-filter/0.5.11/angular-filter.min.js"></script>
+    
+
 
     <!-- Global App -->
     <script type="text/javascript" src="Javascript/app.js"></script>
-    
+
+    <!-- Global Services -->
+    <script type="text/javascript" src="Javascript/serverDetectionService.js"></script>
+    <script type="text/javascript" src="Javascript/storageService.js"></script>
+    <script type="text/javascript" src="Javascript/comServerService.js"></script>
+    <script type="text/javascript" src="Javascript/localServerService.js"></script>
+    <script type="text/javascript" src="Javascript/statusService.js"></script>
+
+
     <!-- Custom Controllers -->
     <script type="text/javascript" src="Javascript/homeCtrl.js"></script>
     <script type="text/javascript" src="Javascript/chatCtrl.js"></script>
@@ -105,24 +116,28 @@
                         </div>
                      
                          <br>
-                         <button class="btn waves-effect waves-light text-blue" style="width: 100%; margin-top: 50px;" onclick="$('.slider').slider('next');">Next (Be sure you have the server running!)</button>
+                         <button class="btn waves-effect waves-light text-blue" style="width: 100%; margin-top: 50px;" ng-click="runServerDetection()" onclick="$('.slider').slider('next');">Next (Be sure you have the server running!)</button>
                     </div>
                   </li>
                   <li style="min-height: 650px;">
                     <div class="caption left-align" >
                       <div class="hide-on-small-only">
                           <h3 style="float: right;">We are now searching for your server!</h3>
-                          <h5>We found the following: </h5>
+                          <h5>We found the following: </h5><br \>
                       </div>
                       <div class="hide-on-med-and-up">
                           <h5>We are now searching for your server!</h5>
                           <h6>We found the following: </h6>
                       </div>
+                      <br />
+                      <div id="waitingforzeservers"> </div>
                       <div ng-repeat="(i, val) in servers track by $index" ng-if="val.ip.length > 0">
                           <button class="btn waves-effect waves-light {{val.color}}" id="server_{{i}}" style="width: 100%; margin-top: 10px;" ng-click="setAsDefaultServer(i,val.ip)"><i class="material-icons left text-blue">computer</i> WeebIRC Server at {{val.name}} ({{val.ip}})</button>
-                      </div> 
+                      </div>                       
                       <br />
                       <h6 ng-bind-html="newVersion"></h6>
+                      <br />
+                      <h6> In case nothing is showing, refresh the page! </h6>
                       <br />
                        <label for="Channels">Custom IP</label>
                        <input class="customIp inputFocus left" id="customIp" ng-model="customIp" style="width: 100%" type="text">
@@ -130,12 +145,11 @@
                       <button class="btn waves-effect waves-light text-blue" style="width: 100%; margin-top: 50px;" ng-click="checkIfCustomIpIsSet()">Next</button>
                     </div>
                   </li>
-                  <li style="min-height: 650px;">
-                    <div class="caption right-align" style="min-height: 600px;">
+                  <li style="min-height: 660px;">
+                    <div class="caption right-align" style="min-height: 620px;">
                         <div class="row">
                             <div class="hide-on-small-only">
-                               <h3>
-                                   <span>One last thing!</span></h3>
+                               <h3><span>One last thing!</span></h3>
                                 
                             </div>
                         </div>
@@ -144,22 +158,42 @@
                             <h5>One last thing!</h5>
                            
                         </div>
-                        <br>
                             <label for="server">Server</label> 
-                            <input class="server inputFocus" id="server" ng-model="server" style="width: 100%" type="text" ><br>
+                            <input class="server inputFocus" id="server" ng-model="server" style="width: 100%" type="text" >
                             
                             <label for="Channels">Channels</label>
-                            <input class="channel inputFocus" id="Channels" ng-model="channels" style="width: 100%" type="text"><br>
+                            <input class="channel inputFocus" id="Channels" ng-model="channels" style="width: 100%" type="text">
                             
                             <label for="username">User Name</label>
-                            <input class="username inputFocus"  id="username" ng-model="username" style="width: 100%" type="text"><br>
-                            
-                            <br />
-                             <button class="btn waves-effect waves-light text-blue" style="width: 100%" ng-click="saveAndConnectIRC(); setFirstLaunchAsTrue();">Done!</button>
+                            <input class="username inputFocus"  id="username" ng-model="username" style="width: 100%" type="text">
+
+                            <h4><span>Where do you want your anime to be stored?</span></h4>
+                             
+                                <h6> Unfortunately due to browser restrictions you have to manually fill in the path of the directory where you want to store your anime in. In case you leave this blank the default directory, which is the installation directory of weebirc server, will be used. This can always be changed on the settings page!</h6>
+                           
+                                <label for="Directory">Directory</label> 
+                                <input class="Directory inputFocus" id="Directory" ng-model="Directory" style="width: 100%" type="text" ><br />
+                             <button class="btn waves-effect waves-light text-blue" style="width: 100%" ng-click="saveAndConnectIRC(); setDownloadDirectory();">Done!</button>
                         
                     </div>
                   </li>
                 </ul>
+              </div>
+          </div>
+    </div>
+    <div id="norunninglocalserver" class="modal logo" style="min-height: 100%;">      
+        <div class="modal-content" style="margin-top: 200px; color: white; margin-right: 10%; margin-left: 10%;">            
+              <div class="caption center-align"  style="max-width: 100%;">
+                  <div class="hide-on-small-only">
+                       <h3>WeebIRC isn't running locally :(.</h3>
+                       <h5>In order to play anime on your local machine, you need to run a local version of the server, you can still use a seperate weebirc server to store and download your anime on, but the local version allows you to stream them to your default mediaplayer (VLC or MPC-HC only!) <p>Get the server here:</p><a onclick="$('#firstLaunch').closeModal()" class="hide-on-small-only btn waves-effect waves-light text-blue" href="/#/serverdownload"> <h6>Download Page</h6></a> 
+                       </h5>
+                  </div>
+                  <div class="hide-on-med-and-up">
+                       <<h5>WeebIRC isn't running locally :(.</h5>
+                       <h6>In order to play anime on your local machine, you need to run a local version of the server, you can still use a seperate weebirc server to store and download your anime on, but the local version allows you to stream them to your default mediaplayer (VLC or MPC-HC only!<p>Get the server here:</p> <a onclick="$('#firstLaunch').closeModal()" class="hide-on-med-and-up btn waves-effect waves-light text-blue" href="/#/serverdownload"><h6>Download Page</h6></a> 
+                       </h6>
+                  </div>
               </div>
           </div>
     </div>
@@ -229,9 +263,9 @@
     <script>
         $(document).ready(function(){
           $('.slider').slider({indicators: false, full_width: true, interval: 300000});
-          $('.slider').slider('pause');
+           $('.slider').slider('prev');
           $('.slider').slider('prev');
-          $('.slider').slider('next');
+          $('.slider').slider('prev');
         });
     </script>
     

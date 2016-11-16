@@ -12,19 +12,6 @@
                 {{key}}
             </div>
             <div class="collapsible-body center">
-              
-              <!--<ul class="collection with-header">-->
-              <!--  <li class="collection-item" ng-repeat="(key2, value2) in value track by $index">-->
-              <!--    <div>-->
-              <!--      {{value2.fileName}}-->
-              <!--      <a href="#!" class="secondary-content">-->
-              <!--        <i class="material-icons">play_arrow</i>-->
-              <!--        <i class="material-icons">file_download</i>-->
-              <!--      </a>-->
-              <!--    </div>-->
-              <!--  </li>-->
-              <!--</ul>-->
-              
               <ul class="collapsible popout" id="episodes" data-collapsible="accordion" >
                   <li ng-repeat="(key2, value2) in value track by $index"> 
                       <div class="collapsible-header truncate center">
@@ -56,7 +43,7 @@
   <div class="row" style="visibility: {{dlVisible}};">
     <div class="col s12 card ">
       <div class="card-content">
-        <span class="card-title">{{download.fileName}}</span>
+        <span class="card-title">{{download.fileName}}<span class="right"> {{download.downloadSpeed}} kb/s </span></span>
         <div class="progress" style="padding: 20px; margin-right: 10%; margin-left: 10%; width: 80%;" >
             <div class="determinate" style="width: {{download.downloadProgress}}%"><span class="white-text right" style="font-size: 28px;">{{download.downloadProgress}}%</span> </div>
         </div>
@@ -66,7 +53,7 @@
           <a target="_blank" class="waves-effect waves-light btn right text-blue" href={{baseUrl}}{{download.downloadUrl}}>Get File</a>
         </div>
         <div class="col s4">
-            <a class="waves-effect waves-light btn center text-blue" href="" ng-click="sendPlayRequest(baseUrl + download.streamUrl)">Stream File</a>
+            <a class="waves-effect waves-light btn center text-blue" href="" ng-click="sendPlayRequest(baseUrl + download.streamUrl)">Play</a>
         </div>
         <div class="col s4">
             <a class="waves-effect waves-light btn left red" href="" ng-click="abortDownload()">Abort Download</a>

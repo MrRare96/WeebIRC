@@ -75,27 +75,26 @@
             <div class="col s12">
                 <label for="resolution">Resolution: </label>
                 <div class="section center" id="resolution">
-                    <button id="1080" class="btn waves-effect" style="margin-top: 20px;" ng-click="changeResolution('1080')">1080p</button>
-                    <button id="720" class="btn waves-effect" style="margin-top: 20px;" ng-click="changeResolution('720')">720p</button>
-                    <button id="480" class="btn waves-effect" style="margin-top: 20px;" ng-click="changeResolution('480')">480p</button>
-                    <button id="unknown" class="btn waves-effect" style="margin-top: 20px;" ng-click="changeResolution('unknown')">Everything</button>
+                    <button id="1080" class="{{resB1}} btn waves-effect" style="margin-top: 20px;" ng-click="changeResolution('1080')">1080p</button>
+                    <button id="720" class="{{resB2}} btn waves-effect" style="margin-top: 20px;" ng-click="changeResolution('720')">720p</button>
+                    <button id="480" class="{{resB3}} btn waves-effect" style="margin-top: 20px;" ng-click="changeResolution('480')">480p</button>
+                    <button id="unknown" class="{{resB4}} btn waves-effect" style="margin-top: 20px;" ng-click="changeResolution('unknown')">All</button>
                 </div>
             </div>
         </div>
-        <div class="divider"></div>    
-            
-        <div class="row">
+        <div class="divider"></div> 
+         <div class="row">
             <div class="col s12">
                 <label for="source">Source: </label>
                 <div class="section center" id="source">
                     <ul class="collapsible popout" id="bots" data-collapsible="accordion" >
                         <li> 
                             <div class="collapsible-header truncate center" id="botsclick">
-                                Bots (Current: {{currentbot.name}} (Amount of files: {{currentbot.amountoffiles}})
+                                Select your bot here!
                             </div>
                             <div class="collapsible-body center">
-                               <div ng-repeat="value in botlist track by $index">
-                                    <button ng-click="updateFileList($index)"style="width: 90%; margin-bottom: 5px; margin-top: 5px;" class="btn waves-effect">{{value.name}} (Amount of files: {{value.amountoffiles}})</button>
+                               <div ng-repeat="value in animebotsandpacks">
+                                    <button ng-click="updateFileList(value)" style="width: 90%; margin-bottom: 5px; margin-top: 5px;" class="btn waves-effect">{{value}}</button>
                                </div>
                             </div>
                         </li> 
@@ -140,18 +139,18 @@
                 <div class="section" id="listOfNiblresults">
                     <p>
                         <ul class="collapsible popout" id="episodes" data-collapsible="accordion" >
-                            <li  ng-repeat="(key, value) in niblSearchResults track by $index"> 
+                            <li  ng-repeat="value in niblSearchResults" > 
                                 <div class="collapsible-header truncate center">
                                     <i class="material-icons">cloud</i>
-                                    {{value.botname}} | {{value.filename}}
+                                    {{value[0]}} | {{value[2]}}
                                 </div>
                                 <div class="collapsible-body center">
                                     <div id="{{value.packnumber}}" style=" margin-top: 15px; margin-bottom: 15px; ">
-                                        <button ng-click="sendDownloadRequest(value.botname, value.packnumber)" class="waves-effect waves-light btn grey" style="margin-right: 10px;"><i class="material-icons right">file_download</i>Download</button>
-                                        <button ng-click="sendPlayRequest(value.botname, value.packnumber, value.filename)" class="waves-effect waves-light btn grey"><i class="material-icons right">play_circle_outline</i>Play</button>
+                                        <button ng-click="sendDownloadRequest(value[0], value[1])" class="waves-effect waves-light btn grey" style="margin-right: 10px;"><i class="material-icons right">file_download</i>Download</button>
+                                        <button ng-click="sendPlayRequest(value[0], value[1], value[2])" class="waves-effect waves-light btn grey"><i class="material-icons right">play_circle_outline</i>Play</button>
                                         
                                     </div>
-                                     <div id="placeForLoaderStream_{{value.packnumber}}" style="margin: 15px;"></div>
+                                     <div id="placeForLoaderStream_{{value[1]}}" style="margin: 15px;"></div>
                                 </div>
                             </li> 
                         </ul>

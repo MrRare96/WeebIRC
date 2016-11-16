@@ -8,32 +8,40 @@ app.controller('settingsCtrl', ['$rootScope', '$scope', '$location', 'comServer'
     
     updateStoragePrinter();
     
+    serverDetection.detectServers();
+
+    comServer.getDownload
     
-    $rootScope.$on('ircConnected', function (event, args) {
+    $rootScope.$on('ircclientisconnected', function () {
         $scope.ircClientConnectionStatus = "Connected";
         $scope.connectOrReconnect = "Reconnect";
         storage.resetStorage('irc_connection', {connected: true});
     });
     
-    $rootScope.$on('ircDisconnected', function(event, args){
+    $rootScope.$on('ircclientisnotconnected', function(){
         $scope.ircClientConnectionStatus = "Not Connected";
         $scope.connectOrReconnect = "Connect";
         storage.resetStorage('irc_connection', {connected: false});
     });
     
-    $rootScope.$on('Connected', function (event, args) {
+    $rootScope.$on('comserver_connected', function () {
         $scope.serverConnectionStatus = "Connected";
     });
     
-    $rootScope.$on('NotConnected', function(event, args){
+    $rootScope.$on('comserver_notconnected', function(){
         $scope.serverConnectionStatus = "Not Connected";
+    });
+
+    $rootScope.$on('FoundServers', function () {
+        $scope.servers = storage.retreiveFromStorage('server_ip');
     });
     
     var settings = storage.retreiveFromStorage('settings')[0];
     $scope.server = settings.server;
     $scope.channels = settings.channels;
     $scope.username = settings.username;
-    $scope.autoConnect = settings.autoConnect;
+    $scope.autoConnect = settings.autoConnect
+    $scope.Directory = storage.retreiveFromStorage('download_directory');
     
     $scope.generateUsername = function(){
         var text = "";
@@ -48,7 +56,7 @@ app.controller('settingsCtrl', ['$rootScope', '$scope', '$location', 'comServer'
     
     $scope.saveAndReConnectIRC = function(){
         
-        comServer.sendMessage("IRCCLOSE");
+        comServer.closeIrcClient();
         
         var server = $scope.server;
         var channels = $scope.channels;
@@ -64,22 +72,15 @@ app.controller('settingsCtrl', ['$rootScope', '$scope', '$location', 'comServer'
         
         storage.resetStorage('settings', newSettings);
         
-        var connectionString = "server: " + server + " channel: " + channels + ",#weebirc username: " + username + " junk: this is junk";
-        comServer.sendMessage(connectionString);
+        comServer.setupIrcClient(server, channels, username);   
         $scope.connectOrReconnect = "Reconnecting";
-        setTimeout(function(){comServer.sendMessage("ISCLIENTRUNNING");}, 500);
+        setTimeout(comServer.isIrcClientRunning, 500);
     }
     
     $scope.disconnectIRC = function(){
-        comServer.sendMessage("IRCCLOSE");
+        comServer.closeIrcClient();
     }
-    
-   
-    //weebirc server controls
-    
-    
-           
-    
+
     $scope.setAsDefaultServer = function(button, value){
         $.each($scope.servers, function(i, val){
            if(button == i){
@@ -101,9 +102,7 @@ app.controller('settingsCtrl', ['$rootScope', '$scope', '$location', 'comServer'
             Materialize.toast("Server address " + value + " is not valid!", 4000);
         }
          $scope.weebserveraddress = storage.retreiveFromStorage('weebirc_server_address');
-    }
-    
-    
+    }   
     
     $scope.weebserveraddress = storage.retreiveFromStorage('weebirc_server_address');
     
@@ -124,6 +123,13 @@ app.controller('settingsCtrl', ['$rootScope', '$scope', '$location', 'comServer'
          storage.resetStorage('weebirc_server_address', "http://" + $location.host());
          $scope.weebserveraddress = "http://" + $location.host();
          $scope.$apply();
+    }
+
+    $scope.setCustomDlDir = function(){
+        console.log("Custom dir: " + $scope.Directory);
+        comServer.setDownloadDirectory($scope.Directory);
+        storage.resetStorage('download_directory', $scope.Directory);
+        Materialize.toast("Download Directory: " + $scope.Directory + " succesfully saved!");
     }
     
     //Delete storage things
@@ -170,8 +176,7 @@ app.controller('settingsCtrl', ['$rootScope', '$scope', '$location', 'comServer'
         $scope.resB2 = "";
         $scope.resB3 = "";
         $scope.resB4 = "blue";
-    }
-            
+    }   
           
     
     $scope.changeResolution = function(res){
@@ -185,9 +190,7 @@ app.controller('settingsCtrl', ['$rootScope', '$scope', '$location', 'comServer'
         
         storage.resetStorage('default_resolution', res);
         $scope.$apply();
-    }
-    
-    
+    }   
     
     //Debug console
     $scope.debugmessages = storage.retreiveFromStorage('debug_messages').reverse();
@@ -215,20 +218,8 @@ app.controller('settingsCtrl', ['$rootScope', '$scope', '$location', 'comServer'
     }
     
     //update those things
-     setInterval(function(){
-        
+    setInterval(function(){        
         updateStoragePrinter();
         $scope.debugmessages = storage.retreiveFromStorage('debug_messages').reverse();
-     }, 2000);
-   
-    setTimeout(function(){
-         serverDetection.detectServers();
-    }, 0);
-    var interval = setInterval(function(){
-        if(storage.retreiveFromStorage('server_ip').length > 1 && storage.retreiveFromStorage('server_ip') != null && storage.retreiveFromStorage('server_ip') !== undefined){
-            $scope.servers = storage.retreiveFromStorage('server_ip');
-            Materialize.toast("Found servers!", 4000);
-            clearInterval(interval);
-        }
-    }, 200);
+    }, 2000);
 }]);
